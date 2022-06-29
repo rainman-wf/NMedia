@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/postsListFragment">
+
+    <fragment
+        android:id="@+id/postsListFragment"
+        android:name="ru.netology.nmedia.presentation.fragments.PostsListFragment"
+        android:label="fragment_posts_list"
+        tools:layout="@layout/fragment_posts_list">
+        <action
+            android:id="@+id/action_postsListFragment_to_newPostFragment"
+            app:destination="@id/newPostFragment"/>
+        <action
+            android:id="@+id/action_postsListFragment_to_postDetailsFragment"
+            app:destination="@id/postDetailsFragment"/>
+    </fragment>
+    <fragment
+        android:id="@+id/newPostFragment"
+        android:name="ru.netology.nmedia.presentation.fragments.NewPostFragment"
+        android:label="fragment_new_post"
+        tools:layout="@layout/fragment_new_post" >
+        <argument
+            android:name="postId"
+            app:argType="long"
+            android:defaultValue="0L" />
+    </fragment>
+    <fragment
+        android:id="@+id/postDetailsFragment"
+        android:name="ru.netology.nmedia.presentation.fragments.PostDetailsFragment"
+        android:label="PostDetailsFragment">
+        <action
+            android:id="@+id/action_postDetailsFragment_to_newPostFragment"
+            app:destination="@id/newPostFragment" />
+        <argument
+            android:name="postId"
+            app:argType="long"
+            android:defaultValue="0L" />
+    </fragment>
+</navigation>
