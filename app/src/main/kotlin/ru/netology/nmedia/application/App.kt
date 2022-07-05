@@ -1,8 +1,8 @@
-package ru.netology.nmedia.common.application
+package ru.netology.nmedia.application
 
 import android.app.Application
 import ru.netology.nmedia.BuildConfig
-import ru.netology.nmedia.common.di.AppContainer
+import ru.netology.nmedia.di.AppContainer
 import timber.log.Timber
 
 class App: Application() {

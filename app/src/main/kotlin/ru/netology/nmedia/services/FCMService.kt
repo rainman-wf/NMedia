@@ -16,7 +16,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
 import ru.netology.nmedia.R
-import ru.netology.nmedia.common.application.App
+import ru.netology.nmedia.application.App
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.presentation.activities.MainActivity
 import ru.netology.nmedia.services.dto.Like
@@ -38,32 +38,16 @@ class FCMService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         log(message.data)
 
-        val receivedAction = message.data[action]?.let { getValidAction(it) }
-
-        receivedAction?.let {
-            when (it) {
+        message.data[action]?.let {
+            when (Action.getValidAction(it)) {
                 Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
-                Action.NEW_POST -> handleNewPost(
-                    gson.fromJson(
-                        message.data[content],
-                        NewPostInfo::class.java
-                    )
-                )
-                Action.ERROR -> {
-                    log(it.toString())
-                    // send log to server
-                }
+                Action.NEW_POST ->
+                    handleNewPost(gson.fromJson(message.data[content], NewPostInfo::class.java))
+                Action.ERROR -> log(it) // send log to server
             }
         }
     }
 
-    private fun getValidAction(action: String): Action {
-        return try {
-            Action.valueOf(action)
-        } catch (exception: IllegalArgumentException) {
-            Action.ERROR
-        }
-    }
 
     override fun onNewToken(token: String) {
         log(token)
@@ -123,10 +107,10 @@ class FCMService : FirebaseMessagingService() {
             .setContentIntent(intent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setLargeIcon(getBitmapFromURL(content.authorAvatar))
-                .setStyle(
-                    NotificationCompat.BigPictureStyle()
-                        .bigPicture(getBitmapFromURL(content.thumbnail_url))
-                )
+            .setStyle(
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(getBitmapFromURL(content.thumbnail_url))
+            )
             .setAutoCancel(true)
 
         val notId = Random.nextInt(100_000)

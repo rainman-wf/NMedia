@@ -1,12 +1,13 @@
 package ru.netology.nmedia.presentation.viewmodels
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.usecase.AddNewPostUseCase
 import ru.netology.nmedia.domain.usecase.GetPostByIdUseCase
 import ru.netology.nmedia.domain.usecase.UpdatePostContentUseCase
 import ru.netology.nmedia.domain.usecase.dto.NewPost
 import ru.netology.nmedia.domain.usecase.dto.UpdatePostContent
+import kotlin.concurrent.thread
 
 class NewPostViewModel(
     private val updatePostContentUseCase: UpdatePostContentUseCase,
@@ -14,15 +15,32 @@ class NewPostViewModel(
     private val getPostByIdUseCase: GetPostByIdUseCase
 ) : ViewModel() {
 
-    fun getPost(id: Long) = getPostByIdUseCase.invoke(id)
+    private val _postCreated = SingleLiveEvent<Unit>()
+    val postCreated: LiveData<Unit>
+        get() = _postCreated
 
-    fun onSaveClicked (author : String, content: String, url: String? = null) {
-        val newPost = NewPost(author, content, url)
-        addNewPostUseCase.invoke(newPost)
+    fun save(author: String, content: String) {
+        val newPostParam = NewPost(author, content)
+        thread {
+            try {
+                addNewPostUseCase.invoke(newPostParam)
+                _postCreated.postValue(Unit)
+            } catch (exception: Exception) {
+                TODO()
+            }
+
+        }
     }
 
-    fun onSaveClicked(id: Long, content: String, url: String?) {
-        val updatePostContent = UpdatePostContent(id, content, url)
-        updatePostContentUseCase.invoke(updatePostContent)
+    fun save(id: Long, content: String) {
+        val updatePostContent = UpdatePostContent(id, content)
+        thread {
+            try {
+                updatePostContentUseCase.invoke(updatePostContent)
+                _postCreated.postValue(Unit)
+            } catch (exception: Exception) {
+                TODO()
+            }
+        }
     }
 }

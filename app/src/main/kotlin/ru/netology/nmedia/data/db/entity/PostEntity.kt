@@ -4,8 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import ru.netology.nmedia.domain.models.FirstUrl
-import ru.netology.nmedia.domain.models.Post
 import java.util.*
 
 @Entity(tableName = "posts")
@@ -19,6 +17,5 @@ data class PostEntity(
     @ColumnInfo(name = "likes") val likes: Int = 0,
     @ColumnInfo(name = "shares") val shares: Int = 0,
     @ColumnInfo(name = "views") val views: Int = 0,
-    @Embedded val firstUrl: FirstUrl? = null,
+    @Embedded val firstUrl: FirstUrlEntity? = null,
 )
-

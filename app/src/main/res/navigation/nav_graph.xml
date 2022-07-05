@@ -26,6 +26,11 @@
             android:name="postId"
             app:argType="long"
             android:defaultValue="0L" />
+        <argument
+            android:name="postContent"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue='""' />
     </fragment>
     <fragment
         android:id="@+id/postDetailsFragment"

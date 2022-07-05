@@ -28,9 +28,9 @@ class PostViewHolder(
 
             post.firstUrl?.thumbData?.apply {
                 Glide.with(root.context)
-                    .load(thumbnail_url)
+                    .load(thumbnailUrl)
                     .centerCrop()
-                    .override(thumbnail_width, thumbnail_height)
+                    .override(thumbnailWidth, thumbnailHeight)
                     .into(richLink)
                 playButton.visibility = View.VISIBLE
             }

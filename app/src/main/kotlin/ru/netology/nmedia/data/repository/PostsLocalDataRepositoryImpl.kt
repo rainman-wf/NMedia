@@ -3,17 +3,17 @@ package ru.netology.nmedia.data.repository
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import ru.netology.nmedia.data.db.dao.PostDao
+import ru.netology.nmedia.data.db.entity.FirstUrlEntity
 import ru.netology.nmedia.data.db.entity.PostEntity
 import ru.netology.nmedia.data.db.mapper.toEntity
 import ru.netology.nmedia.data.db.mapper.toModel
 import ru.netology.nmedia.data.youtubeApi.RetrofitInstance
-import ru.netology.nmedia.domain.models.FirstUrl
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.domain.repository.PostRepository
 import ru.netology.nmedia.domain.usecase.dto.NewPost
 import ru.netology.nmedia.domain.usecase.dto.UpdatePostContent
 
-class PostRepositoryImpl(private val postDao: PostDao) : PostRepository {
+class PostsLocalDataRepositoryImpl(private val postDao: PostDao) : PostRepository {
 
     override fun addNew(newPost: NewPost): Post {
 
@@ -26,24 +26,24 @@ class PostRepositoryImpl(private val postDao: PostDao) : PostRepository {
         return postDao.getById(postId).toModel()
     }
 
-    override fun updateContent(updatePostContent: UpdatePostContent): Boolean {
-
-        val postEntity = postDao.getById(updatePostContent.id).copy(
+    override fun updateContent(updatePostContent: UpdatePostContent): Post {
+        return postDao.getById(updatePostContent.id).copy(
             content = updatePostContent.content,
             firstUrl = getFirstUrl(updatePostContent.url)
-        )
-        return postDao.update(postEntity) == 1
+        ).toModel()
     }
 
-    override fun getAll(): LiveData<List<Post>> =
-        postDao.getAll().map { entities -> entities.map { it.toModel() } }
+    override fun getAll(): List<Post> =
+        postDao.getAll().value?.toList()?.map { it.toModel() } ?: emptyList()
 
-    override fun like(id: Long): Boolean {
-        return postDao.like(id) == 1
+    override fun like(id: Long): Post {
+        postDao.like(id)
+        return postDao.getById(id).toModel()
     }
 
-    override fun share(id: Long): Boolean {
-        return postDao.share(id) == 1
+    override fun share(id: Long): Post {
+        postDao.like(id)
+        return postDao.getById(id).toModel()
     }
 
     override fun remove(id: Long): Boolean {
@@ -62,15 +62,15 @@ class PostRepositoryImpl(private val postDao: PostDao) : PostRepository {
         return postDao.insert(post.toEntity())
     }
 
-    private fun getFirstUrl(url: String?): FirstUrl? {
+    private fun getFirstUrl(url: String?): FirstUrlEntity? {
         if (url == null) return null
 
-        var firstUrl: FirstUrl? = null
+        var firstUrl: FirstUrlEntity? = null
 
         val load = Thread {
             url.let {
-                val apiResponse = RetrofitInstance.service.getData(it).execute()
-                firstUrl = if (apiResponse.code() == 200) FirstUrl(it, apiResponse.body()) else null
+                val apiResponse = RetrofitInstance.service.getThumbDataEntity(it).execute()
+                firstUrl = if (apiResponse.code() == 200) FirstUrlEntity(it, apiResponse.body()) else null
             }
         }
 

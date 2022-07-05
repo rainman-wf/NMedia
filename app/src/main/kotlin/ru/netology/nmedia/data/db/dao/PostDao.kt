@@ -6,8 +6,6 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import ru.netology.nmedia.data.db.entity.PostEntity
-import ru.netology.nmedia.domain.models.FirstUrl
-import ru.netology.nmedia.domain.models.Post
 
 @Dao
 interface PostDao {

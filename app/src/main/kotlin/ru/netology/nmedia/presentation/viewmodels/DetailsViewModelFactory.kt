@@ -8,6 +8,7 @@ class DetailsViewModelFactory(
     private val likePostUseCase: LikePostUseCase,
     private val sharePostUseCase: SharePostUseCase,
     private val removePostUseCase: RemovePostUseCase,
+    private val getPostByIdUseCase: GetPostByIdUseCase,
     private val getObservableByIdUseCase: GetObservableByIdUseCase
 ) : ViewModelProvider.Factory {
 
@@ -17,6 +18,7 @@ class DetailsViewModelFactory(
             likePostUseCase,
             sharePostUseCase,
             removePostUseCase,
+            getPostByIdUseCase,
             getObservableByIdUseCase
         ) as T
     }

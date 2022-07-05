@@ -3,7 +3,9 @@ package ru.netology.nmedia.presentation.fragments
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -14,23 +16,32 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
 import ru.netology.nmedia.databinding.FragmentPostDetailsBinding
-import ru.netology.nmedia.presentation.activities.MainActivity
+import ru.netology.nmedia.di.AppContainerHolder
 import ru.netology.nmedia.presentation.viewmodels.DetailsViewModel
 
 class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
 
     private val viewModel: DetailsViewModel by viewModels(::requireParentFragment) {
-        (requireActivity() as MainActivity).appContainer.detailsViewModelFactory
+        (requireActivity() as AppContainerHolder).appContainer.detailsViewModelFactory
     }
 
     private val args by navArgs<PostDetailsFragmentArgs>()
     private val postId by lazy { args.postId }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        viewModel.loadPost(postId)
+        return super.onCreateView(inflater, container, savedInstanceState)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val binding = FragmentPostDetailsBinding.bind(view)
 
-        viewModel.observable(postId)
+        viewModel.post
             .observe(viewLifecycleOwner) { post ->
                 binding.postCard.apply {
                     author.text = post.author
@@ -43,9 +54,9 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
 
                     post.firstUrl?.thumbData?.apply {
                         Glide.with(root.context)
-                            .load(thumbnail_url)
+                            .load(thumbnailUrl)
                             .centerCrop()
-                            .override(thumbnail_width, thumbnail_height)
+                            .override(thumbnailWidth, thumbnailHeight)
                             .into(richLink)
                         playButton.visibility = View.VISIBLE
                     }
@@ -65,7 +76,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
                         startActivity(shareIntent)
                     }
 
-                    menu.setOnClickListener { showPopupMenu(menu) }
+                    menu.setOnClickListener { showPopupMenu(menu, post.content) }
                     playButton.setOnClickListener {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.firstUrl?.url))
                         startActivity(intent)
@@ -74,7 +85,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
             }
     }
 
-    private fun showPopupMenu(view: View) {
+    private fun showPopupMenu(view: View, content: String) {
         val navController = findNavController()
         with(PopupMenu(view.context, view)) {
             inflate(R.menu.post_option_menu)
@@ -83,7 +94,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
                     R.id.menuItemEdit -> {
                         navController.navigate(
                             PostDetailsFragmentDirections.actionPostDetailsFragmentToNewPostFragment(
-                                postId
+                                postId, content
                             )
                         )
                         true
