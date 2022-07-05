@@ -89,7 +89,6 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         binding.updateList.setOnRefreshListener {
             viewModel.loadPosts()
-            binding.updateList.isRefreshing = false
         }
 
         binding.postList.apply {
@@ -108,12 +107,14 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         viewModel.posts.observe(viewLifecycleOwner) {
             binding.loadingGroup.isVisible = it.statusLoading
+            binding.updateList.isRefreshing = it.statusLoading
             if (it.statusSuccess) {
                 postAdapter.submitList(it.posts.toList())
             }
             binding.emptyWall.isVisible = it.statusEmpty
             binding.errorMessage.isVisible = it.statusError
             binding.errorMessage.text = it.errorMsg
+            postAdapter.submitList(it.posts)
         }
     }
 }

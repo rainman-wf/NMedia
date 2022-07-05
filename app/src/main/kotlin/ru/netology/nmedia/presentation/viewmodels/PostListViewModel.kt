@@ -38,8 +38,6 @@ class PostListViewModel(
             } catch (e: Exception) {
                 _posts.postValue(
                     FeedModel(
-                        statusLoading = false,
-                        statusEmpty = false,
                         statusError = true,
                         errorMsg = e::class.java.simpleName
                     )
@@ -50,26 +48,28 @@ class PostListViewModel(
 
     fun onLikeClicked(id: Long) {
         thread {
-            val target = _posts.value?.posts?.find { it.isLiked } ?: return@thread
-            val newPost = target.let {
+            val oldPosts = _posts.value?.posts ?: return@thread
+            val targetPost = oldPosts.find { it.id == id } ?: return@thread
+
+            // данную логику стот выполнить в LocalDataRepository, и сохранять пост в локальную
+            // базу данных.
+
+            val newPost = targetPost.let {
                 it.copy(
                     isLiked = !it.isLiked,
                     likes = if (it.isLiked) it.likes - 1 else it.likes + 1
                 )
             }
-            val posts = _posts.value?.posts?.let { list ->
-                val newList = list.filter {
-                    it.id != id
-                }.toMutableList()
-                newList.add(newPost)
-                newList.toList()
-            }.orEmpty()
-            _posts.postValue(FeedModel(posts = posts))
+
+            val newPosts = oldPosts.filter { it.id != id }.toMutableList()
+            newPosts.add(newPost)
+            _posts.postValue(FeedModel(posts = newPosts))
+
             try {
                 likePostUseCase.invoke(id)
-                loadPosts()
             } catch (e: Exception) {
-                TODO("Save like state locally and retry request later")
+                // если пост был удален, то удалить его локально
+                // если нет соденинения с сервером, повторить попытку позже.
             }
         }
     }

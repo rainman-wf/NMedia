@@ -21,7 +21,7 @@ class NetworkServiceImpl(
 
     override fun getAll(): List<PostResponse> {
         val request: Request = Request.Builder()
-            .url("$BASE_URL$PATH")
+            .url("${BASE_URL}/api/slow/posts/")
             .build()
 
         return client.newCall(request)
