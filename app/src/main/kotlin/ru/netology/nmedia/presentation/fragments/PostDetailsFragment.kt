@@ -21,95 +21,82 @@ import ru.netology.nmedia.presentation.viewmodels.DetailsViewModel
 
 class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
 
-    private val viewModel: DetailsViewModel by viewModels(::requireParentFragment) {
-        (requireActivity() as AppContainerHolder).appContainer.detailsViewModelFactory
-    }
-
-    private val args by navArgs<PostDetailsFragmentArgs>()
-    private val postId by lazy { args.postId }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        viewModel.loadPost(postId)
-        return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val binding = FragmentPostDetailsBinding.bind(view)
-
-        viewModel.post
-            .observe(viewLifecycleOwner) { post ->
-                binding.postCard.apply {
-                    author.text = post.author
-                    content.text = post.content
-                    published.text = formatDate(post.dateTime)
-                    likeCount.text = post.likes.asUnit()
-                    sharesCount.text = post.shares.asUnit()
-                    viewsCount.text = post.views.asUnit()
-                    likeCount.isChecked = post.isLiked
-
-                    post.firstUrl?.thumbData?.apply {
-                        Glide.with(root.context)
-                            .load(thumbnailUrl)
-                            .centerCrop()
-                            .override(thumbnailWidth, thumbnailHeight)
-                            .into(richLink)
-                        playButton.visibility = View.VISIBLE
-                    }
-
-                    likeCount.setOnClickListener {
-                        viewModel.onLikeClicked(post.id)
-                    }
-                    sharesCount.setOnClickListener {
-                        viewModel.onShareClicked(post.id)
-                        val intent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, post.content)
-                            type = "text/plain"
-                        }
-
-                        val shareIntent = Intent.createChooser(intent, "Chose")
-                        startActivity(shareIntent)
-                    }
-
-                    menu.setOnClickListener { showPopupMenu(menu, post.content) }
-                    playButton.setOnClickListener {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.firstUrl?.url))
-                        startActivity(intent)
-                    }
-                }
-            }
-    }
-
-    private fun showPopupMenu(view: View, content: String) {
-        val navController = findNavController()
-        with(PopupMenu(view.context, view)) {
-            inflate(R.menu.post_option_menu)
-            setOnMenuItemClickListener {
-                when (it.itemId) {
-                    R.id.menuItemEdit -> {
-                        navController.navigate(
-                            PostDetailsFragmentDirections.actionPostDetailsFragmentToNewPostFragment(
-                                postId, content
-                            )
-                        )
-                        true
-                    }
-                    R.id.menuItemRemove -> {
-                        findNavController().navigateUp()
-                        viewModel.onRemoveClicked(postId)
-                        true
-                    }
-                    else -> false
-                }
-            }
-            show()
-        }
-    }
+//    private val viewModel: DetailsViewModel by viewModels(::requireParentFragment) {
+//        (requireActivity() as AppContainerHolder).appContainer.detailsViewModelFactory
+//    }
+//
+//    private val args by navArgs<PostDetailsFragmentArgs>()
+//    private val postId by lazy { args.postId }
+//
+//    override fun onCreateView(
+//        inflater: LayoutInflater,
+//        container: ViewGroup?,
+//        savedInstanceState: Bundle?
+//    ): View? {
+//        viewModel.loadPost(postId)
+//        return super.onCreateView(inflater, container, savedInstanceState)
+//    }
+//
+//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+//        super.onViewCreated(view, savedInstanceState)
+//        val binding = FragmentPostDetailsBinding.bind(view)
+//
+//        viewModel.post
+//            .observe(viewLifecycleOwner) { singlePostModel ->
+//                val post = singlePostModel.post ?: return@observe
+//                binding.postCard.apply {
+//                    author.text = post.author
+//                    content.text = post.content
+//                    published.text = formatDate(post.dateTime)
+//                    likeCount.text = post.likes.asUnit()
+//                    sharesCount.text = post.shares.asUnit()
+//                    viewsCount.text = post.views.asUnit()
+//                    likeCount.isChecked = post.isLiked
+//
+//                    likeCount.setOnClickListener {
+//                        viewModel.onLikeClicked(post.id)
+//                    }
+//                    sharesCount.setOnClickListener {
+//                        val intent = Intent().apply {
+//                            action = Intent.ACTION_SEND
+//                            putExtra(Intent.EXTRA_TEXT, post.content)
+//                            type = "text/plain"
+//                        }
+//
+//                        val shareIntent = Intent.createChooser(intent, "Chose")
+//                        startActivity(shareIntent)
+//                    }
+//
+//                    menu.setOnClickListener { showPopupMenu(menu, post.content) }
+//                }
+//            }
+//    }
+//
+//    private fun showPopupMenu(view: View, content: String) {
+//        val navController = findNavController()
+//        with(PopupMenu(view.context, view)) {
+//            inflate(R.menu.post_option_menu)
+//            setOnMenuItemClickListener {
+//                when (it.itemId) {
+//                    R.id.menuItemEdit -> {
+//                        navController.navigate(
+//                            PostDetailsFragmentDirections.actionPostDetailsFragmentToNewPostFragment(
+//                                postId, content
+//                            )
+//                        )
+//                        true
+//                    }
+//                    R.id.menuItemRemove -> {
+//                        findNavController().navigateUp()
+//                        viewModel.onRemoveClicked(postId)
+//                        true
+//                    }
+//                    else -> false
+//                }
+//            }
+//            show()
+//        }
+//    }
 }
 
 

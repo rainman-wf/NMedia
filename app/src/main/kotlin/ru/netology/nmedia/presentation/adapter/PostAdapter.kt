@@ -4,10 +4,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import ru.netology.nmedia.databinding.PostCardBinding
-import ru.netology.nmedia.domain.models.Post
+import ru.netology.nmedia.domain.models.PostModel
 
 class PostAdapter(private val onPostClickListener: OnPostClickListener) :
-    ListAdapter<Post, PostViewHolder>(PostsDiffCallBack()) {
+    ListAdapter<PostModel, PostViewHolder>(PostsDiffCallBack()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val inflater = LayoutInflater.from(parent.context)

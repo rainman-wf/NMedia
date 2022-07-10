@@ -7,6 +7,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import ru.netology.nmedia.R
+import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.common.utils.notifyEmptyMessage
 import ru.netology.nmedia.di.AppContainerHolder
@@ -27,9 +28,9 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         val binding = FragmentNewPostBinding.bind(view)
         val navController = findNavController()
 
-        if (postId != 0L) {
-            binding.msgInputText.setText(args.postContent)
-        }
+//        if (postId != 0L) {
+//            binding.msgInputText.setText(args.postContent)
+//        }
 
         binding.apply {
             save.setOnClickListener {
@@ -37,12 +38,21 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                     notifyEmptyMessage(binding.root)
                     return@setOnClickListener
                 }
-                if (postId != 0L) viewModel.save(postId, msgInputText.text.toString())
+//                if (postId != 0L) viewModel.onSaveClicked(postId, msgInputText.text.toString())
+//
+//                else viewModel.onSaveClicked(
+//                    "Dinar",
+//                    msgInputText.text.toString()
+//                )
 
-                else viewModel.save(
+                else viewModel.send(
                     "Dinar",
                     msgInputText.text.toString()
                 )
+
+                navController.navigateUp()
+                msgInputText.text.clear()
+
             }
 
             cancel.setOnClickListener {
@@ -53,9 +63,10 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
             msgInputText.requestFocus()
         }
 
-        viewModel.postCreated.observe(viewLifecycleOwner) {
-            navController.navigateUp()
-            binding.msgInputText.text.clear()
-        }
+//        viewModel.postPrepared.observe(viewLifecycleOwner) {
+//            log("OBSERVED")
+//            navController.navigateUp()
+//            binding.msgInputText.text.clear()
+//        }
     }
 }

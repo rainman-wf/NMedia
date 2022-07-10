@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import ru.netology.nmedia.common.utils.log
 
-class SingleLiveEvent<T>: MutableLiveData<T>() {
+class SingleLiveEvent<T> : MutableLiveData<T>() {
 
     private var pending = false
 

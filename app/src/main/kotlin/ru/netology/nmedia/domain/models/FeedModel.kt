@@ -1,10 +1,10 @@
 package ru.netology.nmedia.domain.models
 
 data class FeedModel(
-    val posts: List<Post> = emptyList(),
+    val posts: MutableMap<Long, PostModel> = mutableMapOf(),
     val statusEmpty: Boolean = false,
     val statusLoading: Boolean = false,
+    val statusUpdating: Boolean = false,
     val statusSuccess: Boolean = false,
-    val statusError: Boolean = false,
-    val errorMsg: String? = null
+    val statusError: Boolean = false
 )

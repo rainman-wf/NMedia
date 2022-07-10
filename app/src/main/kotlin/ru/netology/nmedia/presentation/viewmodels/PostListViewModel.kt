@@ -1,98 +1,78 @@
 package ru.netology.nmedia.presentation.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.FeedModel
-import ru.netology.nmedia.domain.usecase.*
-import kotlin.concurrent.thread
+import ru.netology.nmedia.domain.models.Post
+import ru.netology.nmedia.domain.models.PostModel
+import ru.netology.nmedia.domain.repository.PostRepository
+import ru.netology.nmedia.domain.usecase.interactor.PostListInteractor
+import ru.netology.nmedia.domain.usecase.params.NewPostParam
 
 class PostListViewModel(
-    private val likePostUseCase: LikePostUseCase,
-    private val sharePostUseCase: SharePostUseCase,
-    private val removePostUseCase: RemovePostUseCase,
-    private val getPostsListUseCase: GetPostsListUseCase,
+    val liveData: PostsLiveData,
+    private val postListInteractor: PostListInteractor
 ) : ViewModel() {
 
-    private val _posts = MutableLiveData<FeedModel>()
-    val posts: LiveData<FeedModel>
-        get() = _posts
-
     init {
-        _posts.postValue(FeedModel(statusLoading = true))
-        loadPosts()
+        liveData.update(FeedModel(statusLoading = true))
+        syncData()
     }
 
-    fun loadPosts() {
-        thread {
-            try {
-                val posts = getPostsListUseCase.invoke()
-                _posts.postValue(
-                    FeedModel(
-                        posts,
-                        statusEmpty = posts.isEmpty(),
-                        statusSuccess = posts.isNotEmpty(),
-                        statusLoading = false
-                    )
-                )
-            } catch (e: Exception) {
-                _posts.postValue(
-                    FeedModel(
-                        statusError = true,
-                        errorMsg = e::class.java.simpleName
-                    )
-                )
+    fun syncData() {
+        val unsent = postListInteractor.getAllWorkpiecesUseCase.invoke()
+            .map { PostModel(it, statusError = true) }
+        val mutable = mutableListOf<PostModel>()
+        mutable.addAll(unsent)
+
+        postListInteractor.getAllUseCase.invoke(
+            object : PostRepository.Callback<List<Post>> {
+                override fun onSuccess(data: List<Post>) {
+
+                    mutable.addAll(data.map { PostModel(it) })
+                    liveData.update(FeedModel(posts = mutable.associateBy { it.post.id }
+                        .toMutableMap(), statusSuccess = true))
+                }
+
+                override fun onFailure(e: Exception) {
+                    liveData.update(FeedModel(posts = mutable.associateBy { it.post.id }
+                        .toMutableMap(), statusSuccess = true))
+                }
             }
-        }
+        )
     }
 
-    fun onLikeClicked(id: Long) {
-        thread {
-            val oldPosts = _posts.value?.posts ?: return@thread
-            val targetPost = oldPosts.find { it.id == id } ?: return@thread
+    fun trySend(id: Long) {
 
-            // данную логику стот выполнить в LocalDataRepository, и сохранять пост в локальную
-            // базу данных.
+        val post = liveData.posts.value?.posts?.get(id)?.post ?: return
 
-            val newPost = targetPost.let {
-                it.copy(
-                    isLiked = !it.isLiked,
-                    likes = if (it.isLiked) it.likes - 1 else it.likes + 1
-                )
-            }
+        val newPostParam = NewPostParam(post.author, post.content)
 
-            val newPosts = oldPosts.filter { it.id != id }.toMutableList()
-            newPosts.add(newPost)
-            _posts.postValue(FeedModel(posts = newPosts))
+        liveData.insert(post.id, PostModel(post, statusLoading = true))
 
-            try {
-                likePostUseCase.invoke(id)
-            } catch (e: Exception) {
-                // если пост был удален, то удалить его локально
-                // если нет соденинения с сервером, повторить попытку позже.
-            }
-        }
+        postListInteractor.sendPostUseCase.invoke(
+            newPostParam,
+            object : PostRepository.Callback<Post> {
+                override fun onSuccess(data: Post) {
+
+                    postListInteractor.removeWorkpieceUseCase.invoke(post.id - 2000000000)
+                    liveData.replace(post.id, data.id, PostModel(data))
+                }
+
+                override fun onFailure(e: Exception) {
+                    liveData.insert(post.id, PostModel(post, statusError = true))
+                }
+            })
     }
 
-    fun onRemoveClicked(id: Long) {
-        thread {
-            val old = _posts.value?.posts.orEmpty()
-            _posts.postValue(
-                _posts.value?.copy(posts = _posts.value?.posts.orEmpty()
-                    .filter { it.id != id })
-            )
-
-            try {
-                removePostUseCase.invoke(id)
-            } catch (e: Exception) {
-                _posts.postValue(_posts.value?.copy(posts = old))
-            }
-        }
-
+    fun like(id: Long) {
+        val post = postListInteractor.likePostUseCase.invoke(id)
+        log(post.isLiked)
+        liveData.updateItem(post)
     }
 
-    fun onShareClicked(id: Long) {
-        sharePostUseCase.invoke(id)
+    fun remove(id: Long) {
+        postListInteractor.removePostUseCase.invoke(id)
+        liveData.removeItem(id)
     }
-
 }

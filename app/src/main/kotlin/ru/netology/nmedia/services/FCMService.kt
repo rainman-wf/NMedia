@@ -88,7 +88,7 @@ class FCMService : FirebaseMessagingService() {
         NotificationManagerCompat.from(this)
             .notify(Random.nextInt(100_000), notification)
 
-        (application as App).appContainer.likePostUseCase.invoke(content.postId)
+//        (application as App).appContainer.likePostUseCase.invoke(content.postId)
     }
 
     private fun handleNewPost(content: NewPostInfo) {
@@ -118,7 +118,7 @@ class FCMService : FirebaseMessagingService() {
         NotificationManagerCompat.from(this)
             .notify(Random.nextInt(notId), notification.build())
 
-        (application as App).appContainer.addIncomingPostUseCase.invoke(content.toPost())
+//        (application as App).appContainer.addIncomingPostUseCase.invoke(content.toPost())
     }
 
     private fun getBitmapFromURL(src: String?): Bitmap? {

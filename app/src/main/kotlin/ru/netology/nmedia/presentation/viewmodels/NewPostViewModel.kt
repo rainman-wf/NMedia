@@ -1,46 +1,37 @@
 package ru.netology.nmedia.presentation.viewmodels
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import ru.netology.nmedia.domain.usecase.AddNewPostUseCase
-import ru.netology.nmedia.domain.usecase.GetPostByIdUseCase
-import ru.netology.nmedia.domain.usecase.UpdatePostContentUseCase
-import ru.netology.nmedia.domain.usecase.dto.NewPost
-import ru.netology.nmedia.domain.usecase.dto.UpdatePostContent
-import kotlin.concurrent.thread
+import ru.netology.nmedia.common.utils.log
+import ru.netology.nmedia.domain.models.Post
+import ru.netology.nmedia.domain.models.PostModel
+import ru.netology.nmedia.domain.repository.PostRepository
+import ru.netology.nmedia.domain.usecase.interactor.NewPostInteractor
+import ru.netology.nmedia.domain.usecase.params.NewPostParam
 
 class NewPostViewModel(
-    private val updatePostContentUseCase: UpdatePostContentUseCase,
-    private val addNewPostUseCase: AddNewPostUseCase,
-    private val getPostByIdUseCase: GetPostByIdUseCase
+    private val liveData: PostsLiveData,
+    private val newPostInteractor: NewPostInteractor
 ) : ViewModel() {
 
-    private val _postCreated = SingleLiveEvent<Unit>()
-    val postCreated: LiveData<Unit>
-        get() = _postCreated
+    fun send(author: String, content: String) {
 
-    fun save(author: String, content: String) {
-        val newPostParam = NewPost(author, content)
-        thread {
-            try {
-                addNewPostUseCase.invoke(newPostParam)
-                _postCreated.postValue(Unit)
-            } catch (exception: Exception) {
-                TODO()
-            }
+        val newPostParam = NewPostParam(author, content)
+        val post = newPostInteractor.saveWorkpieceUseCase.invoke(newPostParam)
 
-        }
-    }
+        liveData.insert(post.id, PostModel(post, statusLoading = true))
 
-    fun save(id: Long, content: String) {
-        val updatePostContent = UpdatePostContent(id, content)
-        thread {
-            try {
-                updatePostContentUseCase.invoke(updatePostContent)
-                _postCreated.postValue(Unit)
-            } catch (exception: Exception) {
-                TODO()
-            }
-        }
+        newPostInteractor.sendPostUseCase.invoke(
+            newPostParam,
+            object : PostRepository.Callback<Post> {
+                override fun onSuccess(data: Post) {
+
+                    newPostInteractor.removeWorkpieceUseCase.invoke(post.id - 2000000000)
+                    liveData.replace(post.id, data.id, PostModel(data))
+                }
+
+                override fun onFailure(e: Exception) {
+                    liveData.insert(post.id, PostModel(post, statusError = true))
+                }
+            })
     }
 }

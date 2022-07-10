@@ -2,45 +2,61 @@ package ru.netology.nmedia.di
 
 import android.content.Context
 import okhttp3.OkHttpClient
-import ru.netology.nmedia.data.db.AppDb
-import ru.netology.nmedia.data.network.NetworkServiceImpl
-import ru.netology.nmedia.data.repository.PostsRemoteDataRepositoryImpl
+import ru.netology.nmedia.data.PostsRepositoryImpl
+import ru.netology.nmedia.data.UnsentPostRepositoryImpl
+import ru.netology.nmedia.data.local.AppDb
+import ru.netology.nmedia.data.remote.RemoteDataSource
 import ru.netology.nmedia.domain.usecase.*
+import ru.netology.nmedia.domain.usecase.interactor.NewPostInteractor
+import ru.netology.nmedia.domain.usecase.interactor.PostListInteractor
 import ru.netology.nmedia.presentation.viewmodels.*
 import java.util.concurrent.TimeUnit
 
 class AppContainer(context: Context) {
 
+
+    private val dbInstance = AppDb.getInstance(context)
     private val okHttpClient = OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).build()
 
-    private val postDao = AppDb.getInstance(context).postDao
-//    private val postRepository = PostsLocalDataRepositoryImpl(postDao)
+    private val postDao = dbInstance.postDao
+    private val unsentPostDao = dbInstance.unsentPostDao
 
-    private val networkService = NetworkServiceImpl(okHttpClient)
-    private val postRepository = PostsRemoteDataRepositoryImpl(networkService)
+    private val remoteDataSource = RemoteDataSource(okHttpClient)
 
-    val likePostUseCase = LikePostUseCase(postRepository)
-    private val sharePostUseCase = SharePostUseCase(postRepository)
+    private val unsentPostsRepository = UnsentPostRepositoryImpl(unsentPostDao)
+    private val postRepository = PostsRepositoryImpl(remoteDataSource, postDao)
+
+    private val postsLiveData = PostsLiveData()
+
+    private val getAllUseCase = GetAllUseCase(postRepository)
+    private val getAllWorkpiecesUseCase = GetAllWorkpiecesUseCase(unsentPostsRepository)
+    private val removeWorkpieceUseCase = RemoveWorkpieceUseCase(unsentPostsRepository)
+    private val saveWorkpieceUseCase = SaveWorkpieceUseCase(unsentPostsRepository)
+    private val sendPostUseCase = SendPostUseCase(postRepository)
+    private val likePostUseCase = LikePostUseCase(postRepository)
     private val removePostUseCase = RemovePostUseCase(postRepository)
-    private val getObservableByIdUseCase = GetObservableByIdUseCase(postRepository)
-    private val updatePostContentUseCase = UpdatePostContentUseCase(postRepository)
-    private val getPostByIdUseCase = GetPostByIdUseCase(postRepository)
-    private val getPostsListUseCase = GetPostsListUseCase(postRepository)
-    private val addNewPostUseCase = AddNewPostUseCase(postRepository)
 
-    val addIncomingPostUseCase = AddIncomingPostUseCase(postRepository)
 
-    val newPostViewModelFactory = NewPostViewModelFactory(
-        updatePostContentUseCase, addNewPostUseCase, getPostByIdUseCase
+    private val newPostInteractor = NewPostInteractor(
+        sendPostUseCase,
+        getAllWorkpiecesUseCase,
+        getAllUseCase,
+        saveWorkpieceUseCase,
+        removeWorkpieceUseCase
     )
-    val detailsViewModelFactory = DetailsViewModelFactory(
-        likePostUseCase, sharePostUseCase, removePostUseCase,
-        getPostByIdUseCase, getObservableByIdUseCase
+
+    private val postListInteractor = PostListInteractor(
+        getAllWorkpiecesUseCase,
+        getAllUseCase,
+        sendPostUseCase,
+        removeWorkpieceUseCase,
+        likePostUseCase,
+        removePostUseCase
     )
-    val postListViewModelFactory = PostListViewModelFactory(
-        likePostUseCase, sharePostUseCase,
-        removePostUseCase, getPostsListUseCase
-    )
+
+    val newPostViewModelFactory = NewPostViewModelFactory(postsLiveData, newPostInteractor)
+    val detailsViewModelFactory = DetailsViewModelFactory(postRepository)
+    val postListViewModelFactory = PostListViewModelFactory(postsLiveData, postListInteractor)
 }
 
 
