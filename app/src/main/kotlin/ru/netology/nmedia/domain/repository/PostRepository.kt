@@ -1,14 +1,14 @@
 package ru.netology.nmedia.domain.repository
 
 import ru.netology.nmedia.domain.models.Post
-import ru.netology.nmedia.domain.usecase.params.NewPostParam
 
 interface PostRepository {
 
-    fun send (newPostParam: NewPostParam, callback: Callback<Post>)
+    fun send (content: String, callback: Callback<Post>)
     fun getAll (callback: Callback<List<Post>>)
     fun like (id: Long) : Post
-    fun remove (id: Long)
+    fun remove (id: Long) : Int
+    fun update (id: Long, content: String) : Post
 
     interface Callback<T> {
         fun onSending() {}

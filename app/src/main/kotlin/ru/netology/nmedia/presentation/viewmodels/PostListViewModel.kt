@@ -1,13 +1,11 @@
 package ru.netology.nmedia.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.FeedModel
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.domain.models.PostModel
 import ru.netology.nmedia.domain.repository.PostRepository
 import ru.netology.nmedia.domain.usecase.interactor.PostListInteractor
-import ru.netology.nmedia.domain.usecase.params.NewPostParam
 
 class PostListViewModel(
     val liveData: PostsLiveData,
@@ -46,16 +44,13 @@ class PostListViewModel(
 
         val post = liveData.posts.value?.posts?.get(id)?.post ?: return
 
-        val newPostParam = NewPostParam(post.author, post.content)
-
         liveData.insert(post.id, PostModel(post, statusLoading = true))
 
         postListInteractor.sendPostUseCase.invoke(
-            newPostParam,
+            post.content,
             object : PostRepository.Callback<Post> {
                 override fun onSuccess(data: Post) {
-
-                    postListInteractor.removeWorkpieceUseCase.invoke(post.id - 2000000000)
+                    postListInteractor.removePostUseCase.invoke(post.id)
                     liveData.replace(post.id, data.id, PostModel(data))
                 }
 
@@ -67,7 +62,6 @@ class PostListViewModel(
 
     fun like(id: Long) {
         val post = postListInteractor.likePostUseCase.invoke(id)
-        log(post.isLiked)
         liveData.updateItem(post)
     }
 

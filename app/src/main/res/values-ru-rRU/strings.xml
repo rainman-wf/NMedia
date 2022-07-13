@@ -9,4 +9,6 @@
     <string name="posts_is_empty">"На данной стене нет пока постов.\nДобавьте ваш новый пост прямо сейчас."</string>
     <string name="cancel" translatable="false">Отменить</string>
     <string name="try_again" translatable="false">Повторить</string>
+    <string name="unsupported">Функция не поддерживается</string>
+    <string name="loading">ЗАГРУЗКА</string>
 </resources>

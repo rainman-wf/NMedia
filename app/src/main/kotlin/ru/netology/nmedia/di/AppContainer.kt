@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit
 
 class AppContainer(context: Context) {
 
-
     private val dbInstance = AppDb.getInstance(context)
     private val okHttpClient = OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).build()
 
@@ -30,26 +29,22 @@ class AppContainer(context: Context) {
 
     private val getAllUseCase = GetAllUseCase(postRepository)
     private val getAllWorkpiecesUseCase = GetAllWorkpiecesUseCase(unsentPostsRepository)
-    private val removeWorkpieceUseCase = RemoveWorkpieceUseCase(unsentPostsRepository)
-    private val saveWorkpieceUseCase = SaveWorkpieceUseCase(unsentPostsRepository)
+    private val savePostUseCase = SavePostUseCase(postRepository, unsentPostsRepository)
     private val sendPostUseCase = SendPostUseCase(postRepository)
     private val likePostUseCase = LikePostUseCase(postRepository)
-    private val removePostUseCase = RemovePostUseCase(postRepository)
+    private val removePostUseCase = RemovePostUseCase(postRepository, unsentPostsRepository)
 
 
     private val newPostInteractor = NewPostInteractor(
         sendPostUseCase,
-        getAllWorkpiecesUseCase,
-        getAllUseCase,
-        saveWorkpieceUseCase,
-        removeWorkpieceUseCase
+        savePostUseCase,
+        removePostUseCase
     )
 
     private val postListInteractor = PostListInteractor(
         getAllWorkpiecesUseCase,
         getAllUseCase,
         sendPostUseCase,
-        removeWorkpieceUseCase,
         likePostUseCase,
         removePostUseCase
     )

@@ -5,7 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import ru.netology.nmedia.domain.repository.PostRepository
 import ru.netology.nmedia.domain.usecase.interactor.NewPostInteractor
 
-class NewPostViewModelFactory(val liveData: PostsLiveData, private val newPostInteractor: NewPostInteractor) :
+class NewPostViewModelFactory(
+    private val liveData: PostsLiveData,
+    private val newPostInteractor: NewPostInteractor
+) :
     ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")

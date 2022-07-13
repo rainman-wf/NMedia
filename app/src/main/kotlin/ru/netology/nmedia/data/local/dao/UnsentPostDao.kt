@@ -3,6 +3,7 @@ package ru.netology.nmedia.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import ru.netology.nmedia.data.local.entity.UnsentPostEntity
 
 @Dao
@@ -18,8 +19,19 @@ interface UnsentPostDao {
     fun insert(unsentPostEntity: UnsentPostEntity): Long
 
     @Query("UPDATE unsentPosts SET content = :content WHERE id = :id")
-    fun update(id: Long, content: String): Int
+    fun _update(id: Long, content: String): Int
 
     @Query("SELECT * FROM unsentPosts WHERE id = :id")
     fun getById(id: Long): UnsentPostEntity
+
+    @Transaction
+    fun save(unsentPostEntity: UnsentPostEntity) : UnsentPostEntity {
+        return getById(insert(unsentPostEntity))
+    }
+
+    @Transaction
+    fun update(id: Long, content: String) : UnsentPostEntity {
+        _update(id, content)
+        return getById(id)
+    }
 }

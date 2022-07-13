@@ -1,9 +1,6 @@
 package ru.netology.nmedia.data.local.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import ru.netology.nmedia.data.local.entity.PostEntity
 
 @Dao
@@ -29,12 +26,23 @@ interface PostDao {
     )
     fun like(id: Long): Int
 
-    @Query("UPDATE posts SET content = :content WHERE id = :id")
-    fun update(id: Long, content: String): Int
+    @Query("UPDATE posts SET content = :content, syncStatus = 0 WHERE id = :id")
+    fun _update(id: Long, content: String): Int
 
     @Query("SELECT * FROM posts WHERE id = :id")
     fun getById(id: Long) : PostEntity
 
     @Query("UPDATE posts SET syncStatus = 1 WHERE id = :id")
     fun syncData(id: Long)
+
+    @Transaction
+    fun save (postEntity: PostEntity) : PostEntity {
+        return getById(insert(postEntity))
+    }
+
+    @Transaction
+    fun update(id: Long, content: String) : PostEntity {
+        _update(id,content)
+        return getById(id)
+    }
 }

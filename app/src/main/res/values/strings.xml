@@ -17,8 +17,9 @@
     <string name="post_item_scroll" translatable="false">post_item_scroll</string>
     <string name="channel_remote_name">Server notifications</string>
     <string name="channel_remote_description" translatable="false">Notifications from remote server</string>
-    <string name="loading" translatable="false">LOADING</string>
+    <string name="loading">LOADING</string>
     <string name="posts_is_empty">"There are no posts on this wall.\nAdd your new post right now."</string>
     <string name="error" translatable="false">error</string>
     <string name="try_again">Try again</string>
+    <string name="unsupported">Unsupported function</string>
 </resources>

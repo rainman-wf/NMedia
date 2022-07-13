@@ -1,19 +1,10 @@
 package ru.netology.nmedia.data.remote
 
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
-import ru.netology.nmedia.data.PostsRepositoryImpl
+import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.data.remote.dto.PostResponse
-import ru.netology.nmedia.data.remote.mapper.toModel
-import ru.netology.nmedia.domain.models.Post
-import ru.netology.nmedia.domain.repository.PostRepository
-import ru.netology.nmedia.domain.usecase.params.NewPostParam
-import ru.netology.nmedia.domain.usecase.params.UpdateCurrentPostParam
-import java.io.IOException
-import java.lang.Exception
-import java.lang.RuntimeException
 
 class RemoteDataSource(private val client: OkHttpClient) {
 
@@ -24,14 +15,14 @@ class RemoteDataSource(private val client: OkHttpClient) {
         private const val PATH = "/api/slow/posts/"
     }
 
-    fun send(newPostParam: NewPostParam, callback: Callback) {
+    fun send(content: String, callback: Callback) {
         val request: Request = Request.Builder()
             .header("Content-Type", "application/json")
             .post(
                 gson.toJson(
                     PostResponse(
-                        author = newPostParam.author,
-                        content = newPostParam.content
+                        author = AUTHOR,
+                        content = content
                     )
                 ).toRequestBody()
             )
@@ -41,14 +32,14 @@ class RemoteDataSource(private val client: OkHttpClient) {
         client.newCall(request).enqueue(callback)
     }
 
-    fun updateContent(updateCurrentPostParam: UpdateCurrentPostParam, callback: Callback) {
+    fun updateContent(id: Long, content: String, callback: Callback) {
         val request: Request = Request.Builder()
             .header("Content-Type", "application/json")
             .post(
                 gson.toJson(
                     PostResponse(
-                        id = updateCurrentPostParam.id,
-                        content = updateCurrentPostParam.content
+                        id = id,
+                        content = content
                     )
                 ).toRequestBody()
             )
@@ -62,7 +53,7 @@ class RemoteDataSource(private val client: OkHttpClient) {
     fun like(id: Long, callback: Callback) {
         val request: Request = Request.Builder()
             .post("{}".toRequestBody())
-            .url("${BASE_URL}${PATH}${id}/likes")
+            .url("$BASE_URL$PATH$id/likes")
             .build()
 
         client.newCall(request).enqueue(callback)
@@ -71,7 +62,7 @@ class RemoteDataSource(private val client: OkHttpClient) {
     fun unlike(id: Long, callback: Callback) {
         val request: Request = Request.Builder()
             .delete()
-            .url("${BASE_URL}${PATH}${id}/likes")
+            .url("$BASE_URL$PATH$id/likes")
             .build()
 
         client.newCall(request).enqueue(callback)
@@ -79,7 +70,7 @@ class RemoteDataSource(private val client: OkHttpClient) {
 
     fun getAll(callback: Callback) {
         val request: Request = Request.Builder()
-            .url("${BASE_URL}${PATH}")
+            .url("$BASE_URL$PATH")
             .build()
 
         client.newCall(request).enqueue(callback)

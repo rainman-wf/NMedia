@@ -27,7 +27,6 @@ class PostViewHolder(
             sharesCount.text = post.shares.asUnit()
             viewsCount.text = post.views.asUnit()
             likeCount.isChecked = post.isLiked
-            log(post.isLiked)
 
             counters.isVisible = !postModel.statusError && !postModel.statusLoading
             error.isVisible = postModel.statusError

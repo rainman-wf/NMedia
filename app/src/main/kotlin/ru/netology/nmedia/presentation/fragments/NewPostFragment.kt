@@ -7,7 +7,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import ru.netology.nmedia.R
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.common.utils.notifyEmptyMessage
 import ru.netology.nmedia.di.AppContainerHolder
@@ -28,9 +27,9 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         val binding = FragmentNewPostBinding.bind(view)
         val navController = findNavController()
 
-//        if (postId != 0L) {
-//            binding.msgInputText.setText(args.postContent)
-//        }
+        if (postId != 0L) {
+            binding.msgInputText.setText(args.postContent)
+        }
 
         binding.apply {
             save.setOnClickListener {
@@ -38,17 +37,8 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                     notifyEmptyMessage(binding.root)
                     return@setOnClickListener
                 }
-//                if (postId != 0L) viewModel.onSaveClicked(postId, msgInputText.text.toString())
-//
-//                else viewModel.onSaveClicked(
-//                    "Dinar",
-//                    msgInputText.text.toString()
-//                )
 
-                else viewModel.send(
-                    "Dinar",
-                    msgInputText.text.toString()
-                )
+                viewModel.onSaveClicked(args.postId, msgInputText.text.toString())
 
                 navController.navigateUp()
                 msgInputText.text.clear()
@@ -62,11 +52,5 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
             msgInputText.requestFocus()
         }
-
-//        viewModel.postPrepared.observe(viewLifecycleOwner) {
-//            log("OBSERVED")
-//            navController.navigateUp()
-//            binding.msgInputText.text.clear()
-//        }
     }
 }

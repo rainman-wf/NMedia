@@ -1,9 +1,8 @@
 package ru.netology.nmedia.presentation.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -11,7 +10,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.R
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostAdapter
 import ru.netology.nmedia.di.AppContainerHolder
@@ -38,11 +36,20 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                 }
 
                 override fun onShare(post: Post) {
-                    TODO ("unsupported function")
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.unsupported),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
                 override fun onEdit(post: Post) {
-
+                    navController.navigate(
+                        PostsListFragmentDirections.actionPostsListFragmentToNewPostFragment(
+                            postId = post.id,
+                            postContent = post.content
+                        )
+                    )
                 }
 
                 override fun onRemove(post: Post) {
@@ -50,7 +57,11 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                 }
 
                 override fun onDetails(post: Post) {
-
+                    navController.navigate(
+                        PostsListFragmentDirections.actionPostsListFragmentToPostDetailsFragment(
+                            postId = post.id
+                        )
+                    )
                 }
 
                 override fun onTryClicked(post: Post) {
@@ -58,7 +69,7 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                 }
 
                 override fun onCancelClicked(post: Post) {
-
+                    viewModel.remove(post.id)
                 }
             }
         )
@@ -79,25 +90,13 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         viewModel.liveData.posts.observe(viewLifecycleOwner) { feedModel ->
             binding.loadingGroup.isVisible = feedModel.statusLoading
-            binding.emptyWall.isVisible = feedModel.statusEmpty && !feedModel.statusLoading
+            binding.emptyWall.isVisible = feedModel.posts.isEmpty() && !feedModel.statusLoading
             binding.updateList.isRefreshing = feedModel.statusUpdating
             postAdapter.submitList(feedModel.posts.values.sortedBy { it.post.dateTime }.reversed())
         }
 
-
         binding.updateList.setOnRefreshListener {
             viewModel.syncData()
         }
-
-
-
-//        viewModel.data.observe(viewLifecycleOwner) {
-//            binding.loadingGroup.isVisible = it.statusLoading
-//            binding.updateList.isRefreshing = it.statusUpdating
-//            binding.emptyWall.isVisible = it.statusEmpty
-//            binding.errorMessage.isVisible = it.statusError
-//            binding.errorMessage.text = it.errorMsg
-//
-//        }
     }
 }

@@ -6,7 +6,6 @@ class PostListInteractor(
     val getAllWorkpiecesUseCase: GetAllWorkpiecesUseCase,
     val getAllUseCase: GetAllUseCase,
     val sendPostUseCase: SendPostUseCase,
-    val removeWorkpieceUseCase: RemoveWorkpieceUseCase,
     val likePostUseCase: LikePostUseCase,
     val removePostUseCase: RemovePostUseCase
 )
