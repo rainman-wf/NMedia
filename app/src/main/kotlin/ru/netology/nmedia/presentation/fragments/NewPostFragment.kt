@@ -27,9 +27,9 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         val binding = FragmentNewPostBinding.bind(view)
         val navController = findNavController()
 
-        if (postId != 0L) {
-            binding.msgInputText.setText(args.postContent)
-        }
+
+        binding.msgInputText.setText(args.postContent)
+
 
         binding.apply {
             save.setOnClickListener {
@@ -38,7 +38,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                     return@setOnClickListener
                 }
 
-                viewModel.onSaveClicked(args.postId, msgInputText.text.toString())
+                viewModel.onSaveClicked(postId, msgInputText.text.toString())
 
                 navController.navigateUp()
                 msgInputText.text.clear()

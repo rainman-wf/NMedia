@@ -1,7 +1,9 @@
 package ru.netology.nmedia.presentation.fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -32,7 +34,7 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
         val postAdapter = PostAdapter(
             object : OnPostClickListener {
                 override fun onLike(post: Post) {
-                    viewModel.like(post.id)
+                    viewModel.onLikeClicked(post.id)
                 }
 
                 override fun onShare(post: Post) {
@@ -53,7 +55,7 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                 }
 
                 override fun onRemove(post: Post) {
-                    viewModel.remove(post.id)
+                    viewModel.onRemoveClicked(post.id)
                 }
 
                 override fun onDetails(post: Post) {
@@ -65,11 +67,11 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                 }
 
                 override fun onTryClicked(post: Post) {
-                    viewModel.trySend(post.id)
+                    viewModel.onTryClicked(post.id)
                 }
 
                 override fun onCancelClicked(post: Post) {
-                    viewModel.remove(post.id)
+                    viewModel.onRemoveClicked(post.id)
                 }
             }
         )
@@ -96,7 +98,7 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
         }
 
         binding.updateList.setOnRefreshListener {
-            viewModel.syncData()
+            viewModel.onRefreshSwiped()
         }
     }
 }

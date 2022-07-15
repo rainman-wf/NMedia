@@ -6,7 +6,6 @@ import okhttp3.*
 import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.local.dao.PostDao
-import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.data.mapper.toEntity
 import ru.netology.nmedia.data.mapper.toModel
 import ru.netology.nmedia.data.remote.RemoteDataSource
@@ -15,7 +14,6 @@ import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.domain.repository.PostRepository
 import java.io.IOException
 import java.lang.Exception
-import java.lang.RuntimeException
 
 class PostsRepositoryImpl(
     private val network: RemoteDataSource,
@@ -44,7 +42,7 @@ class PostsRepositoryImpl(
         })
     }
 
-    override fun update(id: Long, content: String) : Post {
+    override fun update(id: Long, content: String): Post {
 
         val entity = postDao.update(id, content)
 
@@ -61,28 +59,12 @@ class PostsRepositoryImpl(
         return entity.toModel()
     }
 
-    override fun getAll(callback: PostRepository.Callback<List<Post>>) {
+    override fun getById(id: Long): Post {
+        return postDao.getById(id).toModel()
+    }
 
-        val localData = postDao.getAll()
-
-        network.getAll(
-            object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    callback.onSuccess(localData.map { it.toModel() })
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    val body = response.body?.string() ?: throw RuntimeException("body is null")
-                    try {
-                        val postList = gson.fromJson<List<PostResponse>?>(body, typeToken.type)
-                            .map { it.toModel() }
-                        callback.onSuccess(syncData(localData, postList))
-                    } catch (e: Exception) {
-                        callback.onSuccess(localData.map { it.toModel() })
-                    }
-                }
-            }
-        )
+    override fun getAll(): List<Post> {
+        return postDao.getAll().map { it.toModel() }
     }
 
     override fun like(id: Long): Post {
@@ -91,7 +73,7 @@ class PostsRepositoryImpl(
 
         val entity = postDao.getById(id)
 
-        if (!entity.isLiked) {
+        if (entity.isLiked) {
             network.like(id, object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     log("failure")
@@ -135,82 +117,99 @@ class PostsRepositoryImpl(
         return count
     }
 
-    private fun syncData(localData: List<PostEntity>, remoteData: List<Post>): List<Post> {
+    override fun syncData(callback: PostRepository.Callback<Unit>) {
 
-        val remoteMap = remoteData.associateBy { it.id }
-        val localMap = localData.associateBy { it.id }
-
-        val localFiltered = localMap.filter {
-            if (!remoteMap.containsKey(it.key)) postDao.remove(it.key)
-            remoteMap.containsKey(it.key)
-        }.toMutableMap()
-
-        remoteData.forEach {
-            if (!localFiltered.containsKey(it.id)) {
-                if (it.author == AUTHOR) {
-                    network.remove(it.id, object : Callback {
-                        override fun onFailure(call: Call, e: IOException) {
-                            log("failure")
-                        }
-
-                        override fun onResponse(call: Call, response: Response) {
-                            if (response.code == 200) localFiltered.remove(it.id)
-                        }
-
-                    })
-
-                } else {
-                    localFiltered[postDao.insert(it.toEntity(true))] = it.toEntity(true)
-                }
+        network.getAll(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onFailure(e)
             }
-        }
 
-        return localFiltered.values.onEach {
-            if (!it.syncStatus) {
-                if (!it.isLiked) {
-                    network.like(it.id, object : Callback {
-                        override fun onFailure(call: Call, e: IOException) {
-                            log("failure")
-                        }
+            override fun onResponse(call: Call, response: Response) {
+                val body = response.body?.string() ?: throw RuntimeException("body is null")
+                val remoteData = (gson.fromJson(body, typeToken.type)
+                        as List<PostResponse>).associateBy { it.id }
 
-                        override fun onResponse(call: Call, response: Response) {
-                            postDao.syncData(it.id)
-                        }
-                    })
-                } else {
-                    network.unlike(it.id, object : Callback {
-                        override fun onFailure(call: Call, e: IOException) {
-                            log("failure")
-                        }
+                val localDataIds = postDao.getLocalPostIds()
 
-                        override fun onResponse(call: Call, response: Response) {
-                            postDao.syncData(it.id)
-                        }
-                    })
+                localDataIds.forEach { if (!remoteData.containsKey(it)) postDao.remove(it) }
+
+                remoteData.forEach {
+
+                    /* здесь я думал по какому принципу удалять посты, если автором являюсь я.
+                    Пришел к такому выводу, что нужно создавать таблицу удаленных постов с ключем
+                    по времени созданию (по сутия не мог никак создать в один момент времени два
+                    поста, на сервере штамп времени будет разным в любом случае.
+
+                    Мысль такая, что если автором поста являюсь я, и на моем устройстве он удален,
+                    то удалить на сервере. Ведь в локальную базу данным по моему алгоритму пост мог
+                    попасть только при положительном результате запроса на сервер.
+
+                    Однако если пост был отправлен с другого устройства, то на этом устройстве
+                    это пост никогда не появлялся, и при первом же соединении пост будет удален
+                    на сервере. Поэтому нужно отфильтровать по имени автора, потом уже проверить,
+                    не был ли пост удален с этого устройства, если нет, то добавить пост локально,
+                    если же пост находится в списке удаленных, то удалить на сервере.
+
+                    С постами чужих авторов все просто. Если поста нет удаленно, то его удалил автор,
+                    значит нужно удалить локально.
+                    */
+
+                    if (!localDataIds.contains(it.key)) postDao.insert(it.value.toEntity())
                 }
-                remoteMap[it.id]?.content?.let { content ->
-                    if (it.content != content) {
-                        if (it.author === AUTHOR) {
-                            network.updateContent(
-                                id = it.id,
-                                content = it.content,
-                                object : Callback {
-                                    override fun onFailure(call: Call, e: IOException) {
-                                        log("failure")
-                                    }
 
-                                    override fun onResponse(call: Call, response: Response) {
-                                        postDao.syncData(it.id)
-                                    }
+                val mergedData = postDao.getAll()
+
+                mergedData
+                    .filter { !it.syncStatus }
+                    .forEach {
+                    if (!it.syncStatus) {
+                        if (!it.isLiked) {
+                            network.like(it.id, object : Callback {
+                                override fun onFailure(call: Call, e: IOException) {
+                                    log("failure") // можно повторять запросы
                                 }
-                            )
+
+                                override fun onResponse(call: Call, response: Response) {
+                                    postDao.syncData(it.id)
+                                }
+                            })
                         } else {
-                            postDao.update(it.id, content)
+                            network.unlike(it.id, object : Callback {
+                                override fun onFailure(call: Call, e: IOException) {
+                                    log("failure")
+                                }
+
+                                override fun onResponse(call: Call, response: Response) {
+                                    postDao.syncData(it.id) // можно повторять запросы
+                                }
+                            })
+                        }
+                        remoteData[it.id]?.content?.let { content ->
+                            if (it.content != content) {
+                                if (it.author == AUTHOR) {
+                                    network.updateContent(
+                                        id = it.id,
+                                        content = it.content,
+                                        object : Callback {
+                                            override fun onFailure(call: Call, e: IOException) {
+                                                log("failure")
+                                            }
+
+                                            override fun onResponse(call: Call, response: Response) {
+                                                postDao.syncData(it.id)
+                                            }
+                                        }
+                                    )
+                                } else {
+                                    postDao.update(it.id, content)
+                                    postDao.syncData(it.id)
+                                }
+                            }
                         }
                     }
                 }
+                callback.onSuccess(Unit)
             }
-        }.map { it.toModel() }
+        })
     }
-
 }

@@ -5,5 +5,6 @@ import ru.netology.nmedia.domain.models.Post
 interface UnsentPostRepository {
     fun save (id: Long, content: String) : Post
     fun remove (id: Long) : Int
-    fun getAllUnsent() : List<Post>
+    fun getAll() : List<Post>
+    fun getById(id: Long) : Post
 }

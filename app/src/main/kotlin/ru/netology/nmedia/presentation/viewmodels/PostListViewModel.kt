@@ -1,15 +1,16 @@
 package ru.netology.nmedia.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
+import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.FeedModel
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.domain.models.PostModel
 import ru.netology.nmedia.domain.repository.PostRepository
-import ru.netology.nmedia.domain.usecase.interactor.PostListInteractor
+import ru.netology.nmedia.domain.usecase.container.PostListUseCaseContainer
 
 class PostListViewModel(
     val liveData: PostsLiveData,
-    private val postListInteractor: PostListInteractor
+    private val postListUseCaseContainer: PostListUseCaseContainer
 ) : ViewModel() {
 
     init {
@@ -17,40 +18,51 @@ class PostListViewModel(
         syncData()
     }
 
-    fun syncData() {
-        val unsent = postListInteractor.getAllWorkpiecesUseCase.invoke()
-            .map { PostModel(it, statusError = true) }
-        val mutable = mutableListOf<PostModel>()
-        mutable.addAll(unsent)
+    fun onRefreshSwiped() {
+        liveData.setUpdateStatus()
+        syncData()
+    }
 
-        postListInteractor.getAllUseCase.invoke(
-            object : PostRepository.Callback<List<Post>> {
-                override fun onSuccess(data: List<Post>) {
-
-                    mutable.addAll(data.map { PostModel(it) })
-                    liveData.update(FeedModel(posts = mutable.associateBy { it.post.id }
-                        .toMutableMap(), statusSuccess = true))
+    private fun syncData() {
+        postListUseCaseContainer.syncDataUseCase(
+            object : PostRepository.Callback<Unit> {
+                override fun onSuccess(data: Unit) {
+                    log("success")
+                    liveData.update(
+                        FeedModel(
+                            posts = postListUseCaseContainer.getAllUseCase()
+                                .associateBy { it.post.id }
+                                .toMutableMap()
+                        )
+                    )
                 }
 
                 override fun onFailure(e: Exception) {
-                    liveData.update(FeedModel(posts = mutable.associateBy { it.post.id }
-                        .toMutableMap(), statusSuccess = true))
+                    log("failure")
+                    liveData.update(
+                        FeedModel(
+                            posts = postListUseCaseContainer.getAllUseCase()
+                                .associateBy { it.post.id }
+                                .toMutableMap(),
+                            statusError = true
+                        )
+                    )
                 }
             }
         )
     }
 
-    fun trySend(id: Long) {
+    fun onTryClicked(id: Long) {
 
         val post = liveData.posts.value?.posts?.get(id)?.post ?: return
 
         liveData.insert(post.id, PostModel(post, statusLoading = true))
 
-        postListInteractor.sendPostUseCase.invoke(
+        postListUseCaseContainer.sendPostUseCase(
             post.content,
             object : PostRepository.Callback<Post> {
                 override fun onSuccess(data: Post) {
-                    postListInteractor.removePostUseCase.invoke(post.id)
+                    postListUseCaseContainer.removePostUseCase(post.id)
                     liveData.replace(post.id, data.id, PostModel(data))
                 }
 
@@ -60,13 +72,12 @@ class PostListViewModel(
             })
     }
 
-    fun like(id: Long) {
-        val post = postListInteractor.likePostUseCase.invoke(id)
-        liveData.updateItem(post)
+    fun onLikeClicked(id: Long) {
+        liveData.updateItem(postListUseCaseContainer.likePostUseCase(id))
     }
 
-    fun remove(id: Long) {
-        postListInteractor.removePostUseCase.invoke(id)
+    fun onRemoveClicked(id: Long) {
+        postListUseCaseContainer.removePostUseCase(id)
         liveData.removeItem(id)
     }
 }

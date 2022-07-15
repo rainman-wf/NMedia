@@ -19,7 +19,7 @@ interface UnsentPostDao {
     fun insert(unsentPostEntity: UnsentPostEntity): Long
 
     @Query("UPDATE unsentPosts SET content = :content WHERE id = :id")
-    fun _update(id: Long, content: String): Int
+    fun updateContent(id: Long, content: String): Int
 
     @Query("SELECT * FROM unsentPosts WHERE id = :id")
     fun getById(id: Long): UnsentPostEntity
@@ -31,7 +31,7 @@ interface UnsentPostDao {
 
     @Transaction
     fun update(id: Long, content: String) : UnsentPostEntity {
-        _update(id, content)
+        updateContent(id, content)
         return getById(id)
     }
 }

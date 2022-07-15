@@ -33,12 +33,12 @@ class UnsentPostRepositoryImpl(private val dao: UnsentPostDao) : UnsentPostRepos
         return dao.remove(id)
     }
 
-    override fun getAllUnsent(): List<Post> {
+    override fun getAll(): List<Post> {
         return dao.getAll().map { it.toModel() }
     }
 
-    private fun getById(id: Long): UnsentPostEntity {
-        return dao.getById(id)
+    override fun getById(id: Long): Post {
+        return dao.getById(id).toModel()
     }
 }
 

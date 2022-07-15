@@ -4,25 +4,25 @@ import androidx.lifecycle.ViewModel
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.domain.models.PostModel
 import ru.netology.nmedia.domain.repository.PostRepository
-import ru.netology.nmedia.domain.usecase.interactor.NewPostInteractor
+import ru.netology.nmedia.domain.usecase.container.NewPostUseCaseContainer
 
 class NewPostViewModel(
     private val liveData: PostsLiveData,
-    private val newPostInteractor: NewPostInteractor
+    private val newPostUseCaseContainer: NewPostUseCaseContainer
 ) : ViewModel() {
 
     fun onSaveClicked(id: Long, content: String) {
 
-        val post = newPostInteractor.savePostUseCase.invoke(id, content)
+        val post = newPostUseCaseContainer.savePostUseCase(id, content)
 
         liveData.insert(post.id, PostModel(post, statusLoading = true))
 
-        newPostInteractor.sendPostUseCase.invoke(
+        newPostUseCaseContainer.sendPostUseCase(
             content,
             object : PostRepository.Callback<Post> {
                 override fun onSuccess(data: Post) {
 
-                    newPostInteractor.removePostUseCase.invoke(post.id)
+                    newPostUseCaseContainer.removePostUseCase(post.id)
                     liveData.replace(post.id, data.id, PostModel(data))
                 }
 

@@ -7,8 +7,9 @@ import ru.netology.nmedia.data.UnsentPostRepositoryImpl
 import ru.netology.nmedia.data.local.AppDb
 import ru.netology.nmedia.data.remote.RemoteDataSource
 import ru.netology.nmedia.domain.usecase.*
-import ru.netology.nmedia.domain.usecase.interactor.NewPostInteractor
-import ru.netology.nmedia.domain.usecase.interactor.PostListInteractor
+import ru.netology.nmedia.domain.usecase.container.NewPostUseCaseContainer
+import ru.netology.nmedia.domain.usecase.container.PostDetailsUseCaseContainer
+import ru.netology.nmedia.domain.usecase.container.PostListUseCaseContainer
 import ru.netology.nmedia.presentation.viewmodels.*
 import java.util.concurrent.TimeUnit
 
@@ -27,31 +28,38 @@ class AppContainer(context: Context) {
 
     private val postsLiveData = PostsLiveData()
 
-    private val getAllUseCase = GetAllUseCase(postRepository)
-    private val getAllWorkpiecesUseCase = GetAllWorkpiecesUseCase(unsentPostsRepository)
+    private val getAllUseCase = GetAllUseCase(postRepository, unsentPostsRepository)
     private val savePostUseCase = SavePostUseCase(postRepository, unsentPostsRepository)
     private val sendPostUseCase = SendPostUseCase(postRepository)
     private val likePostUseCase = LikePostUseCase(postRepository)
     private val removePostUseCase = RemovePostUseCase(postRepository, unsentPostsRepository)
+    private val syncDataUseCase = SyncDataUseCase(postRepository)
+    private val getPostByIdUseCase = GetPostByIdUseCase(postRepository, unsentPostsRepository)
 
 
-    private val newPostInteractor = NewPostInteractor(
+    private val newPostUseCaseContainer = NewPostUseCaseContainer(
         sendPostUseCase,
         savePostUseCase,
         removePostUseCase
     )
 
-    private val postListInteractor = PostListInteractor(
-        getAllWorkpiecesUseCase,
+    private val postListUseCaseContainer = PostListUseCaseContainer(
         getAllUseCase,
         sendPostUseCase,
         likePostUseCase,
-        removePostUseCase
+        removePostUseCase,
+        syncDataUseCase
     )
 
-    val newPostViewModelFactory = NewPostViewModelFactory(postsLiveData, newPostInteractor)
-    val detailsViewModelFactory = DetailsViewModelFactory(postRepository)
-    val postListViewModelFactory = PostListViewModelFactory(postsLiveData, postListInteractor)
+    private val postDetailsUseCaseContainer = PostDetailsUseCaseContainer(
+        likePostUseCase,
+        removePostUseCase,
+        getPostByIdUseCase
+    )
+
+    val newPostViewModelFactory = NewPostViewModelFactory(postsLiveData, newPostUseCaseContainer)
+    val detailsViewModelFactory = DetailsViewModelFactory(postsLiveData, postDetailsUseCaseContainer)
+    val postListViewModelFactory = PostListViewModelFactory(postsLiveData, postListUseCaseContainer)
 }
 
 

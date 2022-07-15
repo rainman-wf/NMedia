@@ -27,7 +27,7 @@ interface PostDao {
     fun like(id: Long): Int
 
     @Query("UPDATE posts SET content = :content, syncStatus = 0 WHERE id = :id")
-    fun _update(id: Long, content: String): Int
+    fun updateContent(id: Long, content: String): Int
 
     @Query("SELECT * FROM posts WHERE id = :id")
     fun getById(id: Long) : PostEntity
@@ -42,7 +42,10 @@ interface PostDao {
 
     @Transaction
     fun update(id: Long, content: String) : PostEntity {
-        _update(id,content)
+        updateContent(id,content)
         return getById(id)
     }
+
+    @Query("SELECT id FROM posts")
+    fun getLocalPostIds() : List<Long>
 }
