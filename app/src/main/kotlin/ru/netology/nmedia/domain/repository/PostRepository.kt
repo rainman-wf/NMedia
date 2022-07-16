@@ -1,14 +1,16 @@
 package ru.netology.nmedia.domain.repository
 
+import ru.netology.nmedia.domain.models.NewPostDto
 import ru.netology.nmedia.domain.models.Post
+import ru.netology.nmedia.domain.models.UpdatePostDto
 
 interface PostRepository {
 
-    fun send (content: String, callback: Callback<Post>)
+    fun send (newPostDto: NewPostDto, callback: Callback<Post>)
     fun getAll () : List<Post>
     fun like (id: Long) : Post
     fun remove (id: Long) : Int
-    fun update (id: Long, content: String) : Post
+    fun update (updatePostDto: UpdatePostDto) : Post
     fun getById(id: Long) : Post
     fun syncData (callback: Callback<Unit>)
 

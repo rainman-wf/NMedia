@@ -1,58 +1,80 @@
 package ru.netology.nmedia.data
 
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import okhttp3.*
 import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.utils.log
+import ru.netology.nmedia.data.api.ApiService
 import ru.netology.nmedia.data.local.dao.PostDao
 import ru.netology.nmedia.data.mapper.toEntity
 import ru.netology.nmedia.data.mapper.toModel
-import ru.netology.nmedia.data.remote.RemoteDataSource
-import ru.netology.nmedia.data.remote.dto.PostResponse
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.domain.repository.PostRepository
-import java.io.IOException
-import java.lang.Exception
+import retrofit2.Callback
+import retrofit2.Call
+import retrofit2.Response
+import ru.netology.nmedia.common.NullBodyException
+import ru.netology.nmedia.data.mapper.toRequestBody
+import ru.netology.nmedia.data.api.dto.UpdatePostContentRequestBody
+import ru.netology.nmedia.data.local.dao.RemovedIdsDao
+import ru.netology.nmedia.data.local.entity.RemovedIdsEntity
+import ru.netology.nmedia.domain.models.NewPostDto
+import ru.netology.nmedia.domain.models.UpdatePostDto
 
 class PostsRepositoryImpl(
-    private val network: RemoteDataSource,
-    private val postDao: PostDao
+    private val api: ApiService,
+    private val postDao: PostDao,
+    private val removedIdsDao: RemovedIdsDao
 ) : PostRepository {
 
-    private val gson = Gson()
-    private val typeToken = object : TypeToken<List<PostResponse>>() {}
+    override fun send(
+        newPostDto: NewPostDto,
+        callback: PostRepository.Callback<Post>
+    ) {
 
-    override fun send(content: String, callback: PostRepository.Callback<Post>) {
+        val gson = Gson()
 
-        network.send(content, object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                callback.onFailure(e)
-            }
+        val body = newPostDto.toRequestBody()
 
-            override fun onResponse(call: Call, response: Response) {
-                val body = response.body?.string() ?: throw RuntimeException("body is null")
-                try {
-                    val post = gson.fromJson(body, PostResponse::class.java).toEntity()
-                    callback.onSuccess(postDao.save(post).toModel())
-                } catch (e: Exception) {
-                    callback.onFailure(e)
+        log(newPostDto)
+        log(body)
+        log(gson.toJson(body))
+
+        api.send(body).enqueue(object : Callback<Post> {
+            override fun onResponse(call: Call<Post>, response: Response<Post>) {
+
+                log("send: OnResponse ${response.code()}")
+                log("send: OnResponse ${response.errorBody()?.string()}")
+
+                if (!response.isSuccessful) {
+                    callback.onFailure(RuntimeException(response.message()))
+                    return
                 }
+
+                response.body()?.let {
+
+                    postDao.insert(it.toEntity(true))
+                } ?: throw NullBodyException()
             }
+
+            override fun onFailure(call: Call<Post>, t: Throwable) {
+                log(t.message)
+            }
+
         })
     }
 
-    override fun update(id: Long, content: String): Post {
+    override fun update(updatePostDto: UpdatePostDto): Post {
 
-        val entity = postDao.update(id, content)
+        val entity = postDao.update(updatePostDto.id, updatePostDto.content)
 
-        network.send(content, object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                log("failure")
+        api.send(updatePostDto.toRequestBody()).enqueue(object : Callback<Post> {
+            override fun onResponse(call: Call<Post>, response: Response<Post>) {
+                if (!response.isSuccessful) return
+                postDao.syncData(updatePostDto.id)
             }
 
-            override fun onResponse(call: Call, response: Response) {
-                postDao.syncData(id)
+            override fun onFailure(call: Call<Post>, t: Throwable) {
+
             }
         })
 
@@ -69,49 +91,50 @@ class PostsRepositoryImpl(
 
     override fun like(id: Long): Post {
 
-        postDao.like(id)
+        val isLiked = postDao.likeById(id)
 
-        val entity = postDao.getById(id)
-
-        if (entity.isLiked) {
-            network.like(id, object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    log("failure")
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    log(response.body?.string())
+        if (isLiked) {
+            api.like(id).enqueue(object : Callback<Post> {
+                override fun onResponse(call: Call<Post>, response: Response<Post>) {
+                    log(response.body())
                     postDao.syncData(id)
                 }
+
+                override fun onFailure(call: Call<Post>, t: Throwable) {
+                    log(t.message)
+                }
+
             })
         } else {
-            network.unlike(id, object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    log("failure")
+            api.unlike(id).enqueue(object : Callback<Post> {
+                override fun onResponse(call: Call<Post>, response: Response<Post>) {
+                    log(response.body())
+                    postDao.syncData(id)
                 }
 
-                override fun onResponse(call: Call, response: Response) {
-                    log(response.body?.string())
-                    postDao.syncData(id)
+                override fun onFailure(call: Call<Post>, t: Throwable) {
+                    log(t.message)
                 }
             })
         }
 
-        return entity.toModel()
+        return postDao.getById(id).toModel()
     }
 
     override fun remove(id: Long): Int {
 
         val count = postDao.remove(id)
+        removedIdsDao.insert(RemovedIdsEntity(id))
 
-        network.remove(id, object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                log("failure")
+        api.remove(id).enqueue(object : Callback<Unit> {
+            override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+                removedIdsDao.remove(RemovedIdsEntity(id))
             }
 
-            override fun onResponse(call: Call, response: Response) {
-                log("success")
+            override fun onFailure(call: Call<Unit>, t: Throwable) {
+                TODO("Not yet implemented")
             }
+
         })
 
         return count
@@ -119,91 +142,95 @@ class PostsRepositoryImpl(
 
     override fun syncData(callback: PostRepository.Callback<Unit>) {
 
-        network.getAll(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                callback.onFailure(e)
+        api.getAll().enqueue(object : Callback<List<Post>> {
+            override fun onFailure(call: Call<List<Post>>, t: Throwable) {
+                callback.onFailure(RuntimeException(t.message.toString()))
             }
 
-            override fun onResponse(call: Call, response: Response) {
-                val body = response.body?.string() ?: throw RuntimeException("body is null")
-                val remoteData = (gson.fromJson(body, typeToken.type)
-                        as List<PostResponse>).associateBy { it.id }
+            override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
 
-                val localDataIds = postDao.getLocalPostIds()
+                if (!response.isSuccessful) {
+                    callback.onFailure(NullBodyException())
+                    return
+                }
+
+                val body = response.body() ?: throw NullBodyException()
+
+                val remoteData = body.associateBy { it.id } // посты с сервера
+                val localDataIds = postDao.getLocalPostIds() // айдишники локальных постов
+                val removedIds = removedIdsDao.getAll() // айдишники удаленных постов
 
                 localDataIds.forEach { if (!remoteData.containsKey(it)) postDao.remove(it) }
 
-                remoteData.forEach {
+                remoteData.
+                    filter { !localDataIds.contains(it.key) }
+                    .forEach {
+                    when {
+                        it.value.author != AUTHOR ->
+                            postDao.insert(it.value.toEntity(true))
+                        it.value.author == AUTHOR && removedIds.contains(it.key) ->
+                            api.remove(it.key).enqueue(object : Callback<Unit> {
+                                override fun onResponse(
+                                    call: Call<Unit>,
+                                    response: Response<Unit>
+                                ) {
+                                    removedIdsDao.remove(RemovedIdsEntity(it.key))
+                                }
 
-                    /* здесь я думал по какому принципу удалять посты, если автором являюсь я.
-                    Пришел к такому выводу, что нужно создавать таблицу удаленных постов с ключем
-                    по времени созданию (по сутия не мог никак создать в один момент времени два
-                    поста, на сервере штамп времени будет разным в любом случае.
+                                override fun onFailure(call: Call<Unit>, t: Throwable) {
+                                    TODO("Not yet implemented")
+                                }
 
-                    Мысль такая, что если автором поста являюсь я, и на моем устройстве он удален,
-                    то удалить на сервере. Ведь в локальную базу данным по моему алгоритму пост мог
-                    попасть только при положительном результате запроса на сервер.
-
-                    Однако если пост был отправлен с другого устройства, то на этом устройстве
-                    это пост никогда не появлялся, и при первом же соединении пост будет удален
-                    на сервере. Поэтому нужно отфильтровать по имени автора, потом уже проверить,
-                    не был ли пост удален с этого устройства, если нет, то добавить пост локально,
-                    если же пост находится в списке удаленных, то удалить на сервере.
-
-                    С постами чужих авторов все просто. Если поста нет удаленно, то его удалил автор,
-                    значит нужно удалить локально.
-                    */
-
-                    if (!localDataIds.contains(it.key)) postDao.insert(it.value.toEntity())
+                            })
+                        it.value.author == AUTHOR && !removedIds.contains(it.key) ->
+                            postDao.insert(it.value.toEntity(true))
+                    }
                 }
 
-                val mergedData = postDao.getAll()
+                val unsyncedPosts = postDao.getNotSynced()
 
-                mergedData
-                    .filter { !it.syncStatus }
-                    .forEach {
-                    if (!it.syncStatus) {
-                        if (!it.isLiked) {
-                            network.like(it.id, object : Callback {
-                                override fun onFailure(call: Call, e: IOException) {
-                                    log("failure") // можно повторять запросы
-                                }
+                unsyncedPosts.forEach {
+                    if (!it.isLiked) {
+                        api.like(it.id).enqueue(object : Callback<Post> {
+                            override fun onFailure(call: Call<Post>, t: Throwable) {
+                                log("failure") // можно повторять запросы
+                            }
 
-                                override fun onResponse(call: Call, response: Response) {
-                                    postDao.syncData(it.id)
-                                }
-                            })
-                        } else {
-                            network.unlike(it.id, object : Callback {
-                                override fun onFailure(call: Call, e: IOException) {
-                                    log("failure")
-                                }
+                            override fun onResponse(call: Call<Post>, response: Response<Post>) {
+                                postDao.syncData(it.id)
+                            }
+                        })
+                    } else {
+                        api.unlike(it.id).enqueue(object : Callback<Post> {
+                            override fun onFailure(call: Call<Post>, t: Throwable) {
+                                log("failure") // можно повторять запросы
+                            }
 
-                                override fun onResponse(call: Call, response: Response) {
-                                    postDao.syncData(it.id) // можно повторять запросы
-                                }
-                            })
-                        }
-                        remoteData[it.id]?.content?.let { content ->
-                            if (it.content != content) {
-                                if (it.author == AUTHOR) {
-                                    network.updateContent(
-                                        id = it.id,
-                                        content = it.content,
-                                        object : Callback {
-                                            override fun onFailure(call: Call, e: IOException) {
-                                                log("failure")
-                                            }
+                            override fun onResponse(call: Call<Post>, response: Response<Post>) {
+                                postDao.syncData(it.id)
+                            }
+                        })
+                    }
+                    remoteData[it.id]?.content?.let { content ->
+                        if (it.content != content) {
+                            if (it.author == AUTHOR) {
+                                api.send(
+                                    UpdatePostContentRequestBody(id = it.id, content = it.content)
+                                ).enqueue(object : Callback<Post> {
+                                    override fun onFailure(call: Call<Post>, t: Throwable) {
+                                        log("failure")
+                                    }
 
-                                            override fun onResponse(call: Call, response: Response) {
-                                                postDao.syncData(it.id)
-                                            }
-                                        }
-                                    )
-                                } else {
-                                    postDao.update(it.id, content)
-                                    postDao.syncData(it.id)
-                                }
+                                    override fun onResponse(
+                                        call: Call<Post>,
+                                        response: Response<Post>
+                                    ) {
+                                        postDao.syncData(it.id)
+                                    }
+                                })
+                            } else {
+                                postDao.update(it.id, content)
+                                postDao.syncData(it.id)
                             }
                         }
                     }

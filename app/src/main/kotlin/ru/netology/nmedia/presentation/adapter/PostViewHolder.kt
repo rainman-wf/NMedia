@@ -4,12 +4,14 @@ import android.view.View
 import android.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
+import ru.netology.nmedia.common.constants.AUTHOR
+import ru.netology.nmedia.common.constants.BASE_URL
 import ru.netology.nmedia.databinding.PostCardBinding
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.PostModel
 
 class PostViewHolder(
@@ -34,6 +36,15 @@ class PostViewHolder(
             trySending.isEnabled = postModel.statusError
             cancel.isEnabled = postModel.statusError
             sendingBar.isVisible = postModel.statusError || postModel.statusLoading
+
+            menu.isEnabled = postModel.post.author == AUTHOR
+
+            Glide.with(avatar)
+                .load("$BASE_URL/avatars/${postModel.post.authorAvatar}")
+                .placeholder(R.drawable.netology_logo)
+                .timeout(10_000)
+                .circleCrop()
+                .into(avatar)
 
             trySending.setOnClickListener { onPostClickListener.onTryClicked(post) }
             cancel.setOnClickListener { onPostClickListener.onCancelClicked(post) }

@@ -12,6 +12,6 @@ class GetAllUseCase(
         val list = mutableListOf<PostModel>()
         list.addAll(postRepository.getAll().map { PostModel(it) })
         list.addAll(unsentPostRepository.getAll().map { PostModel(it, statusError = true) })
-        return list.sortedBy { it.post.dateTime }.reversed()
+        return list
     }
 }
