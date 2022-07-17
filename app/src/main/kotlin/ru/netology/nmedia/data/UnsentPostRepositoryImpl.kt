@@ -7,9 +7,7 @@ import ru.netology.nmedia.data.local.entity.UnsentPostEntity
 import ru.netology.nmedia.data.mapper.toModel
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.domain.repository.UnsentPostRepository
-import java.time.OffsetDateTime
 import java.util.*
-import kotlin.time.Duration.Companion.seconds
 
 class UnsentPostRepositoryImpl(private val dao: UnsentPostDao) : UnsentPostRepository {
 
@@ -20,7 +18,7 @@ class UnsentPostRepositoryImpl(private val dao: UnsentPostDao) : UnsentPostRepos
                 UnsentPostEntity(
                     author = AUTHOR,
                     content = content,
-                    published = OffsetDateTime.now().toEpochSecond()
+                    published = Date().time / 1000
                 )
             ).toModel()
         } else {
