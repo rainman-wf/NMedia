@@ -37,14 +37,16 @@ class PostViewHolder(
             cancel.isEnabled = postModel.statusError
             sendingBar.isVisible = postModel.statusError || postModel.statusLoading
 
-            menu.isEnabled = postModel.post.author == AUTHOR
+            menu.isEnabled = post.author == AUTHOR
 
-            Glide.with(avatar)
-                .load("$BASE_URL/avatars/${postModel.post.authorAvatar}")
-                .placeholder(R.drawable.netology_logo)
-                .timeout(10_000)
-                .circleCrop()
-                .into(avatar)
+            if (!post.authorAvatar.isNullOrBlank())
+                Glide.with(avatar)
+                    .load("$BASE_URL/avatars/${postModel.post.authorAvatar}")
+                    .placeholder(R.drawable.netology_logo)
+                    .timeout(10_000)
+                    .circleCrop()
+                    .into(avatar)
+
 
             trySending.setOnClickListener { onPostClickListener.onTryClicked(post) }
             cancel.setOnClickListener { onPostClickListener.onCancelClicked(post) }

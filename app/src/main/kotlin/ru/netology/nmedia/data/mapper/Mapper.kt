@@ -6,10 +6,9 @@ import org.mapstruct.factory.Mappers
 import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.constants.AUTHOR_AVATAR
 import ru.netology.nmedia.common.constants.UNSENT_POST_ID_OFFSET
+import ru.netology.nmedia.data.api.dto.PostRequestBody
 import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.data.local.entity.UnsentPostEntity
-import ru.netology.nmedia.data.api.dto.NewPostRequestBody
-import ru.netology.nmedia.data.api.dto.UpdatePostContentRequestBody
 import ru.netology.nmedia.domain.models.NewPostDto
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.domain.models.UpdatePostDto
@@ -24,16 +23,15 @@ fun Post.toEntity(synced: Boolean): PostEntity {
     return converter.toEntity(this, synced)
 }
 
-fun NewPostDto.toRequestBody() = NewPostRequestBody (
+fun NewPostDto.toRequestBody() = PostRequestBody (
     author = AUTHOR,
     authorAvatar = AUTHOR_AVATAR,
     content = content,
     attachment = attachment
 )
 
-fun UpdatePostDto.toRequestBody() = UpdatePostContentRequestBody (
+fun UpdatePostDto.toRequestBody() = PostRequestBody (
     id = id,
-    author = "",
     content = content
 )
 

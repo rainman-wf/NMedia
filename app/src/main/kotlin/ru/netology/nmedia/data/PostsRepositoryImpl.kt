@@ -1,6 +1,5 @@
 package ru.netology.nmedia.data
 
-import com.google.gson.Gson
 import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
@@ -13,8 +12,8 @@ import retrofit2.Callback
 import retrofit2.Call
 import retrofit2.Response
 import ru.netology.nmedia.common.NullBodyException
+import ru.netology.nmedia.data.api.dto.PostRequestBody
 import ru.netology.nmedia.data.mapper.toRequestBody
-import ru.netology.nmedia.data.api.dto.UpdatePostContentRequestBody
 import ru.netology.nmedia.data.local.dao.RemovedIdsDao
 import ru.netology.nmedia.data.local.entity.RemovedIdsEntity
 import ru.netology.nmedia.domain.models.NewPostDto
@@ -26,33 +25,18 @@ class PostsRepositoryImpl(
     private val removedIdsDao: RemovedIdsDao
 ) : PostRepository {
 
-    override fun send(
-        newPostDto: NewPostDto,
-        callback: PostRepository.Callback<Post>
-    ) {
+    override fun send(newPostDto: NewPostDto, callback: PostRepository.Callback<Post>) {
 
-        val gson = Gson()
-
-        val body = newPostDto.toRequestBody()
-
-        log(newPostDto)
-        log(body)
-        log(gson.toJson(body))
-
-        api.send(body).enqueue(object : Callback<Post> {
+        api.send(newPostDto.toRequestBody()).enqueue(object : Callback<Post> {
             override fun onResponse(call: Call<Post>, response: Response<Post>) {
-
-                log("send: OnResponse ${response.code()}")
-                log("send: OnResponse ${response.errorBody()?.string()}")
-
                 if (!response.isSuccessful) {
                     callback.onFailure(RuntimeException(response.message()))
                     return
                 }
 
                 response.body()?.let {
-
                     postDao.insert(it.toEntity(true))
+                    callback.onSuccess(it)
                 } ?: throw NullBodyException()
             }
 
@@ -74,7 +58,7 @@ class PostsRepositoryImpl(
             }
 
             override fun onFailure(call: Call<Post>, t: Throwable) {
-
+                log(t.message)
             }
         })
 
@@ -96,7 +80,6 @@ class PostsRepositoryImpl(
         if (isLiked) {
             api.like(id).enqueue(object : Callback<Post> {
                 override fun onResponse(call: Call<Post>, response: Response<Post>) {
-                    log(response.body())
                     postDao.syncData(id)
                 }
 
@@ -108,7 +91,6 @@ class PostsRepositoryImpl(
         } else {
             api.unlike(id).enqueue(object : Callback<Post> {
                 override fun onResponse(call: Call<Post>, response: Response<Post>) {
-                    log(response.body())
                     postDao.syncData(id)
                 }
 
@@ -132,7 +114,7 @@ class PostsRepositoryImpl(
             }
 
             override fun onFailure(call: Call<Unit>, t: Throwable) {
-                TODO("Not yet implemented")
+                log(t.message)
             }
 
         })
@@ -162,30 +144,29 @@ class PostsRepositoryImpl(
 
                 localDataIds.forEach { if (!remoteData.containsKey(it)) postDao.remove(it) }
 
-                remoteData.
-                    filter { !localDataIds.contains(it.key) }
+                remoteData.filter { !localDataIds.contains(it.key) }
                     .forEach {
-                    when {
-                        it.value.author != AUTHOR ->
-                            postDao.insert(it.value.toEntity(true))
-                        it.value.author == AUTHOR && removedIds.contains(it.key) ->
-                            api.remove(it.key).enqueue(object : Callback<Unit> {
-                                override fun onResponse(
-                                    call: Call<Unit>,
-                                    response: Response<Unit>
-                                ) {
-                                    removedIdsDao.remove(RemovedIdsEntity(it.key))
-                                }
+                        when {
+                            it.value.author != AUTHOR ->
+                                postDao.insert(it.value.toEntity(true))
+                            it.value.author == AUTHOR && removedIds.contains(it.key) ->
+                                api.remove(it.key).enqueue(object : Callback<Unit> {
+                                    override fun onResponse(
+                                        call: Call<Unit>,
+                                        response: Response<Unit>
+                                    ) {
+                                        removedIdsDao.remove(RemovedIdsEntity(it.key))
+                                    }
 
-                                override fun onFailure(call: Call<Unit>, t: Throwable) {
-                                    TODO("Not yet implemented")
-                                }
+                                    override fun onFailure(call: Call<Unit>, t: Throwable) {
+                                        log(t.message)
+                                    }
 
-                            })
-                        it.value.author == AUTHOR && !removedIds.contains(it.key) ->
-                            postDao.insert(it.value.toEntity(true))
+                                })
+                            it.value.author == AUTHOR && !removedIds.contains(it.key) ->
+                                postDao.insert(it.value.toEntity(true))
+                        }
                     }
-                }
 
                 val unsyncedPosts = postDao.getNotSynced()
 
@@ -193,7 +174,7 @@ class PostsRepositoryImpl(
                     if (!it.isLiked) {
                         api.like(it.id).enqueue(object : Callback<Post> {
                             override fun onFailure(call: Call<Post>, t: Throwable) {
-                                log("failure") // можно повторять запросы
+                                log(t.message) // можно повторять запросы
                             }
 
                             override fun onResponse(call: Call<Post>, response: Response<Post>) {
@@ -203,7 +184,7 @@ class PostsRepositoryImpl(
                     } else {
                         api.unlike(it.id).enqueue(object : Callback<Post> {
                             override fun onFailure(call: Call<Post>, t: Throwable) {
-                                log("failure") // можно повторять запросы
+                                log(t.message) // можно повторять запросы
                             }
 
                             override fun onResponse(call: Call<Post>, response: Response<Post>) {
@@ -215,10 +196,10 @@ class PostsRepositoryImpl(
                         if (it.content != content) {
                             if (it.author == AUTHOR) {
                                 api.send(
-                                    UpdatePostContentRequestBody(id = it.id, content = it.content)
+                                    PostRequestBody(id = it.id, content = it.content)
                                 ).enqueue(object : Callback<Post> {
                                     override fun onFailure(call: Call<Post>, t: Throwable) {
-                                        log("failure")
+                                        log(t.message)
                                     }
 
                                     override fun onResponse(
