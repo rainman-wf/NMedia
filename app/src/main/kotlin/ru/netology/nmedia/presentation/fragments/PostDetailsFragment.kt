@@ -9,10 +9,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable
+import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
+import ru.netology.nmedia.common.constants.BASE_URL
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.databinding.FragmentPostDetailsBinding
 import ru.netology.nmedia.di.AppContainerHolder
 import ru.netology.nmedia.presentation.viewmodels.DetailsViewModel
@@ -42,11 +44,11 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
                 binding.postCard.apply {
                     author.text = post.author
                     content.text = post.content
-                    published.text = formatDate(post.dateTime)
+                    published.text = formatDate(post.published)
                     likeCount.text = post.likes.asUnit()
                     sharesCount.text = post.shares.asUnit()
                     viewsCount.text = post.views.asUnit()
-                    likeCount.isChecked = post.isLiked
+                    likeCount.isChecked = post.likedByMe
 
                     counters.isVisible = !postModel.statusError && !postModel.statusLoading
                     error.isVisible = postModel.statusError
@@ -54,6 +56,31 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
                     trySending.isEnabled = postModel.statusError
                     cancel.isEnabled = postModel.statusError
                     sendingBar.isVisible = postModel.statusError || postModel.statusLoading
+
+                    post.attachment?.let {
+
+                        val circularProgressDrawable = CircularProgressDrawable(attachmentImage.context)
+                        circularProgressDrawable.strokeWidth = 5f
+                        circularProgressDrawable.centerRadius = 30f
+                        circularProgressDrawable.start()
+
+                        Glide.with(attachmentImage)
+                            .load("$BASE_URL/images/${it.url}")
+                            .timeout(10_000)
+                            .placeholder(circularProgressDrawable)
+                            .into(attachmentImage)
+
+                        attachmentImage.isVisible = true
+                    }
+
+                    if (!post.authorAvatar.isNullOrBlank())
+                        Glide.with(avatar)
+                            .load("$BASE_URL/avatars/${post.authorAvatar}")
+                            .placeholder(R.drawable.netology_logo)
+                            .timeout(10_000)
+                            .circleCrop()
+                            .into(avatar)
+
 
                     likeCount.setOnClickListener {
                         viewModel.onLikeClicked(post.id)

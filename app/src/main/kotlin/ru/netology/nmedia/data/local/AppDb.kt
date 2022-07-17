@@ -5,24 +5,20 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import ru.netology.nmedia.data.local.dao.PostDao
-import ru.netology.nmedia.data.local.dao.RemovedIdsDao
 import ru.netology.nmedia.data.local.dao.UnsentPostDao
 import ru.netology.nmedia.data.local.entity.PostEntity
-import ru.netology.nmedia.data.local.entity.RemovedIdsEntity
 import ru.netology.nmedia.data.local.entity.UnsentPostEntity
 
 @Database(
     entities = [
         PostEntity::class,
-        UnsentPostEntity::class,
-        RemovedIdsEntity::class],
+        UnsentPostEntity::class],
     version = 1
 )
 abstract class AppDb : RoomDatabase() {
 
     abstract val unsentPostDao: UnsentPostDao
     abstract val postDao: PostDao
-    abstract val removedIdsDao: RemovedIdsDao
 
     companion object {
         @Volatile

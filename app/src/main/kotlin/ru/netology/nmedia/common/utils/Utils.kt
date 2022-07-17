@@ -8,7 +8,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 
 fun formatDate(unixValue: Long): String {
-    return DateFormat.format("dd MMM yyyy в HH.mm", unixValue).toString()
+    return DateFormat.format("dd MMM yyyy в HH.mm", unixValue * 1000).toString()
 }
 
 fun Int.asUnit (): String{

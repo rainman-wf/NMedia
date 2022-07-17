@@ -22,7 +22,6 @@ class AppContainer(context: Context) {
 
     private val postDao = dbInstance.postDao
     private val unsentPostDao = dbInstance.unsentPostDao
-    private val removedIdsDao = dbInstance.removedIdsDao
 
     private val logging = HttpLoggingInterceptor().apply {
         if (BuildConfig.DEBUG) level = HttpLoggingInterceptor.Level.BODY
@@ -35,7 +34,7 @@ class AppContainer(context: Context) {
     private val apiServiceHolder = ApiServiceHolder(BASE_URL, okHttpClient)
 
     private val unsentPostsRepository = UnsentPostRepositoryImpl(unsentPostDao)
-    private val postRepository = PostsRepositoryImpl(apiServiceHolder.api, postDao, removedIdsDao)
+    private val postRepository = PostsRepositoryImpl(apiServiceHolder.api, postDao)
 
     private val getAllUseCase = GetAllUseCase(postRepository, unsentPostsRepository)
     private val savePostUseCase = SavePostUseCase(postRepository, unsentPostsRepository)

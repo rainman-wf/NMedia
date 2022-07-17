@@ -1,8 +1,8 @@
 package ru.netology.nmedia.data.local.dao
 
 import androidx.room.*
+import androidx.room.OnConflictStrategy.REPLACE
 import ru.netology.nmedia.data.local.entity.PostEntity
-import ru.netology.nmedia.domain.models.Post
 
 @Dao
 interface PostDao {
@@ -10,7 +10,7 @@ interface PostDao {
     @Query("UPDATE posts SET syncStatus = 1 WHERE id = :id")
     fun syncData(id: Long)
 
-    @Query("SELECT * FROM posts")
+    @Query("SELECT * FROM posts WHERE removed = 0")
     fun getAll(): List<PostEntity>
 
     @Query("SELECT * FROM posts WHERE id = :id")
@@ -19,7 +19,7 @@ interface PostDao {
     @Query("DELETE FROM posts WHERE id = :id")
     fun remove(id: Long): Int
 
-    @Insert
+    @Insert(onConflict = REPLACE)
     fun insert(postEntity: PostEntity): Long
 
     @Query("UPDATE posts SET content = :content, syncStatus = 0 WHERE id = :id")
@@ -61,4 +61,10 @@ interface PostDao {
 
     @Query("SELECT * FROM posts where syncStatus = 0")
     fun getNotSynced() : List<PostEntity>
+
+    @Query("UPDATE posts SET removed = 1 WHERE id = :id")
+    fun setRemoved(id: Long)
+
+    @Query("SELECT id FROM posts WHERE removed = 1")
+    fun getRemoved() : List<Long>
 }

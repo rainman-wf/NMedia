@@ -39,16 +39,15 @@ fun UnsentPostEntity.toModel() = Post(
     id = id + UNSENT_POST_ID_OFFSET,
     author = author,
     content = content,
-    dateTime = published
+    published = published
 )
 
 @Mapper
 interface PostConverter {
-    @Mapping(target = "isLiked", source = "liked")
     fun toPost(postEntity: PostEntity): Post
 
     @Mapping(target = "syncStatus", source = "synced")
-    @Mapping(target = "isLiked", source = "post.liked")
+    @Mapping(target = "removed", ignore = true)
     fun toEntity(post: Post, synced: Boolean): PostEntity
 }
 

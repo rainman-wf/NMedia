@@ -9,7 +9,7 @@ interface PostRepository {
     fun send (newPostDto: NewPostDto, callback: Callback<Post>)
     fun getAll () : List<Post>
     fun like (id: Long) : Post
-    fun remove (id: Long) : Int
+    fun remove (id: Long)
     fun update (updatePostDto: UpdatePostDto) : Post
     fun getById(id: Long) : Post
     fun syncData (callback: Callback<Unit>)

@@ -92,7 +92,7 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
             binding.loadingGroup.isVisible = feedModel.statusLoading
             binding.emptyWall.isVisible = feedModel.posts.isEmpty() && !feedModel.statusLoading
             binding.updateList.isRefreshing = feedModel.statusUpdating
-            postAdapter.submitList(feedModel.posts.values.sortedBy { it.post.dateTime }.reversed())
+            postAdapter.submitList(feedModel.posts.values.sortedBy { it.post.published }.reversed())
         }
 
         binding.updateList.setOnRefreshListener {

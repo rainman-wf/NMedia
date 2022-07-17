@@ -14,15 +14,12 @@ import retrofit2.Response
 import ru.netology.nmedia.common.NullBodyException
 import ru.netology.nmedia.data.api.dto.PostRequestBody
 import ru.netology.nmedia.data.mapper.toRequestBody
-import ru.netology.nmedia.data.local.dao.RemovedIdsDao
-import ru.netology.nmedia.data.local.entity.RemovedIdsEntity
 import ru.netology.nmedia.domain.models.NewPostDto
 import ru.netology.nmedia.domain.models.UpdatePostDto
 
 class PostsRepositoryImpl(
     private val api: ApiService,
-    private val postDao: PostDao,
-    private val removedIdsDao: RemovedIdsDao
+    private val postDao: PostDao
 ) : PostRepository {
 
     override fun send(newPostDto: NewPostDto, callback: PostRepository.Callback<Post>) {
@@ -38,12 +35,12 @@ class PostsRepositoryImpl(
                     postDao.insert(it.toEntity(true))
                     callback.onSuccess(it)
                 } ?: throw NullBodyException()
+
             }
 
             override fun onFailure(call: Call<Post>, t: Throwable) {
                 log(t.message)
             }
-
         })
     }
 
@@ -103,14 +100,13 @@ class PostsRepositoryImpl(
         return postDao.getById(id).toModel()
     }
 
-    override fun remove(id: Long): Int {
+    override fun remove(id: Long) {
 
-        val count = postDao.remove(id)
-        removedIdsDao.insert(RemovedIdsEntity(id))
+        postDao.setRemoved(id)
 
         api.remove(id).enqueue(object : Callback<Unit> {
             override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
-                removedIdsDao.remove(RemovedIdsEntity(id))
+                postDao.remove(id)
             }
 
             override fun onFailure(call: Call<Unit>, t: Throwable) {
@@ -119,7 +115,6 @@ class PostsRepositoryImpl(
 
         })
 
-        return count
     }
 
     override fun syncData(callback: PostRepository.Callback<Unit>) {
@@ -140,22 +135,24 @@ class PostsRepositoryImpl(
 
                 val remoteData = body.associateBy { it.id } // посты с сервера
                 val localDataIds = postDao.getLocalPostIds() // айдишники локальных постов
-                val removedIds = removedIdsDao.getAll() // айдишники удаленных постов
+                val removedIds = postDao.getRemoved() // айдишники удаленных постов
 
                 localDataIds.forEach { if (!remoteData.containsKey(it)) postDao.remove(it) }
 
                 remoteData.filter { !localDataIds.contains(it.key) }
                     .forEach {
                         when {
-                            it.value.author != AUTHOR ->
+                            it.value.author != AUTHOR -> {
+                                log(it.value.published)
                                 postDao.insert(it.value.toEntity(true))
+                            }
                             it.value.author == AUTHOR && removedIds.contains(it.key) ->
                                 api.remove(it.key).enqueue(object : Callback<Unit> {
                                     override fun onResponse(
                                         call: Call<Unit>,
                                         response: Response<Unit>
                                     ) {
-                                        removedIdsDao.remove(RemovedIdsEntity(it.key))
+                                        postDao.remove(it.key)
                                     }
 
                                     override fun onFailure(call: Call<Unit>, t: Throwable) {
@@ -171,7 +168,7 @@ class PostsRepositoryImpl(
                 val unsyncedPosts = postDao.getNotSynced()
 
                 unsyncedPosts.forEach {
-                    if (!it.isLiked) {
+                    if (!it.likedByMe) {
                         api.like(it.id).enqueue(object : Callback<Post> {
                             override fun onFailure(call: Call<Post>, t: Throwable) {
                                 log(t.message) // можно повторять запросы

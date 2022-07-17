@@ -12,11 +12,12 @@ data class PostEntity(
     @ColumnInfo(name = "author") val author: String,
     @ColumnInfo(name = "authorAvatar") val authorAvatar: String? = null,
     @ColumnInfo(name = "content") val content: String,
-    @ColumnInfo(name = "dateTime") val dateTime: Long,
-    @ColumnInfo(name = "isLiked") val isLiked: Boolean = false,
+    @ColumnInfo(name = "dateTime") val published: Long,
+    @ColumnInfo(name = "isLiked") val likedByMe: Boolean = false,
     @ColumnInfo(name = "likes") val likes: Int = 0,
     @ColumnInfo(name = "shares") val shares: Int = 0,
     @ColumnInfo(name = "views") val views: Int = 0,
     @Embedded(prefix = "attachment_") val attachment: AttachmentEntity? = null,
-    @ColumnInfo(name = "syncStatus") val syncStatus: Boolean = true
+    @ColumnInfo(name = "syncStatus") val syncStatus: Boolean,
+    @ColumnInfo(name = "removed") val removed: Boolean = false
 )

@@ -8,8 +8,8 @@ class RemovePostUseCase(
     private val postRepository: PostRepository,
     private val unsentPostRepository: UnsentPostRepository
 ) {
-    operator fun invoke(id: Long): Int {
-        return if (id >= UNSENT_POST_ID_OFFSET)
+    operator fun invoke(id: Long) {
+        if (id >= UNSENT_POST_ID_OFFSET)
             unsentPostRepository.remove(id - UNSENT_POST_ID_OFFSET)
         else postRepository.remove(id)
     }
