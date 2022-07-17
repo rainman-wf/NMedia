@@ -2,21 +2,17 @@ package ru.netology.nmedia.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import ru.netology.nmedia.domain.usecase.*
+import ru.netology.nmedia.domain.usecase.container.NewPostUseCaseContainer
 
 class NewPostViewModelFactory(
-    private val updatePostContentUseCase: UpdatePostContentUseCase,
-    private val addNewPostUseCase: AddNewPostUseCase,
-    private val getPostByIdUseCase: GetPostByIdUseCase,
-) : ViewModelProvider.Factory {
+    private val liveData: PostsLiveData,
+    private val newPostUseCaseContainer: NewPostUseCaseContainer
+) :
+    ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return NewPostViewModel(
-            updatePostContentUseCase,
-            addNewPostUseCase,
-            getPostByIdUseCase,
-        ) as T
+        return NewPostViewModel(liveData, newPostUseCaseContainer) as T
 
     }
 }

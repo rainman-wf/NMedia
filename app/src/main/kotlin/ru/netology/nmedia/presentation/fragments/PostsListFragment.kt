@@ -1,35 +1,32 @@
 package ru.netology.nmedia.presentation.fragments
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
-import com.google.firebase.messaging.FirebaseMessaging
+import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.R
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostAdapter
-import ru.netology.nmedia.databinding.FragmentPostsListBinding
+import ru.netology.nmedia.di.AppContainerHolder
 import ru.netology.nmedia.domain.models.Post
-import ru.netology.nmedia.presentation.activities.MainActivity
 import ru.netology.nmedia.presentation.viewmodels.PostListViewModel
+import ru.netology.nmedia.databinding.FragmentPostsListBinding
 
 class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
     private val viewModel: PostListViewModel by viewModels(::requireParentFragment) {
-        (requireActivity() as MainActivity).appContainer.postListViewModelFactory
+        (requireActivity() as AppContainerHolder).appContainer.postListViewModelFactory
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        FirebaseMessaging.getInstance().token.addOnSuccessListener {
-            log(it)
-        }
 
         val binding = FragmentPostsListBinding.bind(view)
         val navController = findNavController()
@@ -41,20 +38,19 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                 }
 
                 override fun onShare(post: Post) {
-                    val intent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, post.content)
-                        type = "text/plain"
-                    }
-
-                    val shareIntent = Intent.createChooser(intent, "Chose")
-                    startActivity(shareIntent)
-                    viewModel.onShareClicked(post.id)
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.unsupported),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
                 override fun onEdit(post: Post) {
                     navController.navigate(
-                        PostsListFragmentDirections.actionPostsListFragmentToNewPostFragment(post.id)
+                        PostsListFragmentDirections.actionPostsListFragmentToNewPostFragment(
+                            postId = post.id,
+                            postContent = post.content
+                        )
                     )
                 }
 
@@ -62,17 +58,20 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                     viewModel.onRemoveClicked(post.id)
                 }
 
-                override fun onPlay(post: Post) {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.firstUrl?.url))
-                    startActivity(intent)
-                }
-
                 override fun onDetails(post: Post) {
                     navController.navigate(
                         PostsListFragmentDirections.actionPostsListFragmentToPostDetailsFragment(
-                            post.id
+                            postId = post.id
                         )
                     )
+                }
+
+                override fun onTryClicked(post: Post) {
+                    viewModel.onTryClicked(post.id)
+                }
+
+                override fun onCancelClicked(post: Post) {
+                    viewModel.onRemoveClicked(post.id)
                 }
             }
         )
@@ -81,6 +80,8 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
             adapter = postAdapter
             val animator = itemAnimator
             if (animator is DefaultItemAnimator) animator.supportsChangeAnimations = false
+            postAdapter.stateRestorationPolicy =
+                RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
         }
 
         binding.addPost.setOnClickListener {
@@ -89,8 +90,15 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
             )
         }
 
-        viewModel.getAll().observe(viewLifecycleOwner) {
-            postAdapter.submitList(it.toList().reversed())
+        viewModel.liveData.posts.observe(viewLifecycleOwner) { feedModel ->
+            binding.loadingGroup.isVisible = feedModel.statusLoading
+            binding.emptyWall.isVisible = feedModel.posts.isEmpty() && !feedModel.statusLoading
+            binding.updateList.isRefreshing = feedModel.statusUpdating
+            postAdapter.submitList(feedModel.posts.values.sortedBy { it.post.dateTime }.reversed())
+        }
+
+        binding.updateList.setOnRefreshListener {
+            viewModel.onRefreshSwiped()
         }
     }
 }

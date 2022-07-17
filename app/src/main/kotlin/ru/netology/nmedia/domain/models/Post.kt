@@ -8,6 +8,5 @@ data class Post(
     val isLiked: Boolean = false,
     val likes: Int = 0,
     val shares: Int = 0,
-    val views: Int = 0,
-    val firstUrl: FirstUrl? = null
+    val views: Int = 0
 )

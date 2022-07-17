@@ -8,7 +8,7 @@
     <string name="send" translatable="false">send</string>
     <string name="input_message">Message</string>
     <string name="edit_message">Edit Message</string>
-    <string name="cancel" translatable="false">cancel_</string>
+    <string name="cancel">Cancel</string>
     <string name="edit_mode" translatable="false" >edit_mode</string>
     <string name="save" translatable="false">save</string>
     <string name="preview" translatable="false">preview</string>
@@ -17,4 +17,9 @@
     <string name="post_item_scroll" translatable="false">post_item_scroll</string>
     <string name="channel_remote_name">Server notifications</string>
     <string name="channel_remote_description" translatable="false">Notifications from remote server</string>
+    <string name="loading">LOADING</string>
+    <string name="posts_is_empty">"There are no posts on this wall.\nAdd your new post right now."</string>
+    <string name="error" translatable="false">error</string>
+    <string name="try_again">Try again</string>
+    <string name="unsupported">Unsupported function</string>
 </resources>

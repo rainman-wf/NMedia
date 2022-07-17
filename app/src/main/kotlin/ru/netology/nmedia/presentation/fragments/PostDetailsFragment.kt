@@ -1,26 +1,26 @@
 package ru.netology.nmedia.presentation.fragments
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.PopupMenu
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
+import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.databinding.FragmentPostDetailsBinding
-import ru.netology.nmedia.presentation.activities.MainActivity
+import ru.netology.nmedia.di.AppContainerHolder
 import ru.netology.nmedia.presentation.viewmodels.DetailsViewModel
 
 class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
 
     private val viewModel: DetailsViewModel by viewModels(::requireParentFragment) {
-        (requireActivity() as MainActivity).appContainer.detailsViewModelFactory
+        (requireActivity() as AppContainerHolder).appContainer.detailsViewModelFactory
     }
 
     private val args by navArgs<PostDetailsFragmentArgs>()
@@ -30,8 +30,15 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
         super.onViewCreated(view, savedInstanceState)
         val binding = FragmentPostDetailsBinding.bind(view)
 
-        viewModel.observable(postId)
-            .observe(viewLifecycleOwner) { post ->
+        viewModel.liveData.posts
+            .observe(viewLifecycleOwner) { posts ->
+
+                val postModel = posts.posts[postId] ?: kotlin.run {
+                    findNavController().navigateUp()
+                    return@observe
+                }
+
+                val post = postModel.post
                 binding.postCard.apply {
                     author.text = post.author
                     content.text = post.content
@@ -41,20 +48,17 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
                     viewsCount.text = post.views.asUnit()
                     likeCount.isChecked = post.isLiked
 
-                    post.firstUrl?.thumbData?.apply {
-                        Glide.with(root.context)
-                            .load(thumbnail_url)
-                            .centerCrop()
-                            .override(thumbnail_width, thumbnail_height)
-                            .into(richLink)
-                        playButton.visibility = View.VISIBLE
-                    }
+                    counters.isVisible = !postModel.statusError && !postModel.statusLoading
+                    error.isVisible = postModel.statusError
+                    sending.isVisible = postModel.statusLoading
+                    trySending.isEnabled = postModel.statusError
+                    cancel.isEnabled = postModel.statusError
+                    sendingBar.isVisible = postModel.statusError || postModel.statusLoading
 
                     likeCount.setOnClickListener {
                         viewModel.onLikeClicked(post.id)
                     }
                     sharesCount.setOnClickListener {
-                        viewModel.onShareClicked(post.id)
                         val intent = Intent().apply {
                             action = Intent.ACTION_SEND
                             putExtra(Intent.EXTRA_TEXT, post.content)
@@ -65,16 +69,12 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
                         startActivity(shareIntent)
                     }
 
-                    menu.setOnClickListener { showPopupMenu(menu) }
-                    playButton.setOnClickListener {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.firstUrl?.url))
-                        startActivity(intent)
-                    }
+                    menu.setOnClickListener { showPopupMenu(menu, post.content) }
                 }
             }
     }
 
-    private fun showPopupMenu(view: View) {
+    private fun showPopupMenu(view: View, content: String) {
         val navController = findNavController()
         with(PopupMenu(view.context, view)) {
             inflate(R.menu.post_option_menu)
@@ -83,7 +83,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
                     R.id.menuItemEdit -> {
                         navController.navigate(
                             PostDetailsFragmentDirections.actionPostDetailsFragmentToNewPostFragment(
-                                postId
+                                postId, content
                             )
                         )
                         true

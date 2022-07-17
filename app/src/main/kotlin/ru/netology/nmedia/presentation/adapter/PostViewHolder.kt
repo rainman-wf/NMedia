@@ -2,21 +2,23 @@ package ru.netology.nmedia.presentation.adapter
 
 import android.view.View
 import android.widget.PopupMenu
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.PostCardBinding
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
 import ru.netology.nmedia.common.utils.log
+import ru.netology.nmedia.domain.models.PostModel
 
 class PostViewHolder(
     private val binding: PostCardBinding,
     private val onPostClickListener: OnPostClickListener
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(post: Post) {
+    fun bind(postModel: PostModel) {
+        val post = postModel.post
         binding.apply {
             author.text = post.author
             content.text = post.content
@@ -26,19 +28,18 @@ class PostViewHolder(
             viewsCount.text = post.views.asUnit()
             likeCount.isChecked = post.isLiked
 
-            post.firstUrl?.thumbData?.apply {
-                Glide.with(root.context)
-                    .load(thumbnail_url)
-                    .centerCrop()
-                    .override(thumbnail_width, thumbnail_height)
-                    .into(richLink)
-                playButton.visibility = View.VISIBLE
-            }
+            counters.isVisible = !postModel.statusError && !postModel.statusLoading
+            error.isVisible = postModel.statusError
+            sending.isVisible = postModel.statusLoading
+            trySending.isEnabled = postModel.statusError
+            cancel.isEnabled = postModel.statusError
+            sendingBar.isVisible = postModel.statusError || postModel.statusLoading
 
+            trySending.setOnClickListener { onPostClickListener.onTryClicked(post) }
+            cancel.setOnClickListener { onPostClickListener.onCancelClicked(post) }
             likeCount.setOnClickListener { onPostClickListener.onLike(post) }
             sharesCount.setOnClickListener { onPostClickListener.onShare(post) }
             menu.setOnClickListener { showPopupMenu(menu, post) }
-            playButton.setOnClickListener { onPostClickListener.onPlay(post) }
             itemConteiner.setOnClickListener { onPostClickListener.onDetails(post) }
         }
     }

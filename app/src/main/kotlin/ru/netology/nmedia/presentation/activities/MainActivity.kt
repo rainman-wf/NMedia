@@ -6,27 +6,23 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
-import com.google.firebase.iid.FirebaseInstanceIdReceiver
-import com.google.firebase.iid.internal.FirebaseInstanceIdInternal
-import com.google.firebase.messaging.FirebaseMessaging
 import ru.netology.nmedia.R
-import ru.netology.nmedia.common.di.AppContainer
-import ru.netology.nmedia.common.application.App
-import ru.netology.nmedia.common.utils.log
-import ru.netology.nmedia.services.FCMService
+import ru.netology.nmedia.di.AppContainer
+import ru.netology.nmedia.application.App
+import ru.netology.nmedia.di.AppContainerHolder
 
-class MainActivity : AppCompatActivity(R.layout.activity_main) {
+class MainActivity : AppCompatActivity(R.layout.activity_main), AppContainerHolder {
 
-    val appContainer: AppContainer by lazy { createContainer() }
+    override val appContainer: AppContainer by lazy { createContainer() }
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onCreate(savedInstanceState, persistentState)
         createContainer()
+        checkGoogleApiAvailability()
     }
 
     private fun createContainer () : AppContainer {
         return (application as App).appContainer
-
     }
 
     private fun checkGoogleApiAvailability() {

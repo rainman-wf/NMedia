@@ -1,28 +1,34 @@
 package ru.netology.nmedia.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
-import ru.netology.nmedia.common.utils.log
-import ru.netology.nmedia.domain.usecase.AddNewPostUseCase
-import ru.netology.nmedia.domain.usecase.GetPostByIdUseCase
-import ru.netology.nmedia.domain.usecase.UpdatePostContentUseCase
-import ru.netology.nmedia.domain.usecase.dto.NewPost
-import ru.netology.nmedia.domain.usecase.dto.UpdatePostContent
+import ru.netology.nmedia.domain.models.Post
+import ru.netology.nmedia.domain.models.PostModel
+import ru.netology.nmedia.domain.repository.PostRepository
+import ru.netology.nmedia.domain.usecase.container.NewPostUseCaseContainer
 
 class NewPostViewModel(
-    private val updatePostContentUseCase: UpdatePostContentUseCase,
-    private val addNewPostUseCase: AddNewPostUseCase,
-    private val getPostByIdUseCase: GetPostByIdUseCase
+    private val liveData: PostsLiveData,
+    private val newPostUseCaseContainer: NewPostUseCaseContainer
 ) : ViewModel() {
 
-    fun getPost(id: Long) = getPostByIdUseCase.invoke(id)
+    fun onSaveClicked(id: Long, content: String) {
 
-    fun onSaveClicked (author : String, content: String, url: String? = null) {
-        val newPost = NewPost(author, content, url)
-        addNewPostUseCase.invoke(newPost)
-    }
+        val post = newPostUseCaseContainer.savePostUseCase(id, content)
 
-    fun onSaveClicked(id: Long, content: String, url: String?) {
-        val updatePostContent = UpdatePostContent(id, content, url)
-        updatePostContentUseCase.invoke(updatePostContent)
+        liveData.insert(post.id, PostModel(post, statusLoading = true))
+
+        newPostUseCaseContainer.sendPostUseCase(
+            content,
+            object : PostRepository.Callback<Post> {
+                override fun onSuccess(data: Post) {
+
+                    newPostUseCaseContainer.removePostUseCase(post.id)
+                    liveData.replace(post.id, data.id, PostModel(data))
+                }
+
+                override fun onFailure(e: Exception) {
+                    liveData.insert(post.id, PostModel(post, statusError = true))
+                }
+            })
     }
 }

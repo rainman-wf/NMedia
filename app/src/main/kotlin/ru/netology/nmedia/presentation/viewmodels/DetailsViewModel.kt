@@ -1,27 +1,19 @@
 package ru.netology.nmedia.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
-import ru.netology.nmedia.common.utils.log
-import ru.netology.nmedia.domain.usecase.*
+import ru.netology.nmedia.domain.usecase.container.PostDetailsUseCaseContainer
 
 class DetailsViewModel(
-    private val likePostUseCase: LikePostUseCase,
-    private val sharePostUseCase: SharePostUseCase,
-    private val removePostUseCase: RemovePostUseCase,
-    private val getObservableByIdUseCase: GetObservableByIdUseCase
-): ViewModel() {
+    val liveData: PostsLiveData,
+    private val postDetailsUseCaseContainer: PostDetailsUseCaseContainer
+) : ViewModel() {
 
-    fun onLikeClicked(id: Long) {
-        likePostUseCase.invoke(id)
+    fun onLikeClicked (id: Long) {
+        liveData.updateItem(postDetailsUseCaseContainer.likePostUseCase(id))
     }
 
-    fun onShareClicked(id: Long) {
-        sharePostUseCase.invoke(id)
+    fun onRemoveClicked (id: Long) {
+        postDetailsUseCaseContainer.removePostUseCase(id)
+        liveData.removeItem(id)
     }
-
-    fun onRemoveClicked(id: Long) {
-        removePostUseCase.invoke(id)
-    }
-
-    fun observable(id: Long) = getObservableByIdUseCase.invoke(id)
 }
