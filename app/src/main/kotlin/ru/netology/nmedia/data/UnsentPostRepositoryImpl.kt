@@ -16,6 +16,7 @@ class UnsentPostRepositoryImpl(private val dao: UnsentPostDao) : UnsentPostRepos
         return if (id == 0L) {
             dao.save(
                 UnsentPostEntity(
+                    id = if (dao.getFirstId() >= 0) - 1 else (dao.getFirstId() - 1),
                     author = AUTHOR,
                     content = content,
                     published = Date().time / 1000

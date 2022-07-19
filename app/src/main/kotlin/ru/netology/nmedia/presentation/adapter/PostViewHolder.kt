@@ -13,6 +13,7 @@ import ru.netology.nmedia.databinding.PostCardBinding
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
+import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.PostModel
 
 class PostViewHolder(
@@ -22,6 +23,7 @@ class PostViewHolder(
 
     fun bind(postModel: PostModel) {
         val post = postModel.post
+
         binding.apply {
             author.text = post.author
             content.text = post.content
@@ -30,6 +32,9 @@ class PostViewHolder(
             sharesCount.text = post.shares.asUnit()
             viewsCount.text = post.views.asUnit()
             likeCount.isChecked = post.likedByMe
+
+            log("post.author ${post.author}")
+            log("author.text ${author.text}")
 
             counters.isVisible = !postModel.statusError && !postModel.statusLoading
             error.isVisible = postModel.statusError

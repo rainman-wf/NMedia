@@ -5,7 +5,6 @@ import org.mapstruct.Mapping
 import org.mapstruct.factory.Mappers
 import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.constants.AUTHOR_AVATAR
-import ru.netology.nmedia.common.constants.UNSENT_POST_ID_OFFSET
 import ru.netology.nmedia.data.api.dto.PostRequestBody
 import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.data.local.entity.UnsentPostEntity
@@ -36,7 +35,7 @@ fun UpdatePostDto.toRequestBody() = PostRequestBody (
 )
 
 fun UnsentPostEntity.toModel() = Post(
-    id = id + UNSENT_POST_ID_OFFSET,
+    id = id,
     author = author,
     content = content,
     published = published
@@ -49,6 +48,12 @@ interface PostConverter {
     @Mapping(target = "syncStatus", source = "synced")
     @Mapping(target = "removed", ignore = true)
     fun toEntity(post: Post, synced: Boolean): PostEntity
+
+    @Mapping(target = "author", ignore = true, defaultValue = AUTHOR)
+    @Mapping(target = "authorAvatar", ignore = true, defaultValue = AUTHOR_AVATAR)
+    fun toRequestBody(newPostDto: NewPostDto) : PostRequestBody
+
+    fun toRequestBody(updatePostDto: UpdatePostDto) : PostRequestBody
 }
 
 

@@ -1,6 +1,5 @@
 package ru.netology.nmedia.domain.usecase
 
-import ru.netology.nmedia.common.constants.UNSENT_POST_ID_OFFSET
 import ru.netology.nmedia.domain.models.PostModel
 import ru.netology.nmedia.domain.repository.PostRepository
 import ru.netology.nmedia.domain.repository.UnsentPostRepository
@@ -10,9 +9,9 @@ class GetPostByIdUseCase(
     private val unsentPostRepository: UnsentPostRepository
 ) {
     operator fun invoke(id: Long): PostModel {
-        return if (id >= UNSENT_POST_ID_OFFSET)
+        return if (id < 0)
             PostModel(
-                unsentPostRepository.getById(id - UNSENT_POST_ID_OFFSET),
+                unsentPostRepository.getById(id),
                 statusError = true,
             )
         else PostModel(postRepository.getById(id))

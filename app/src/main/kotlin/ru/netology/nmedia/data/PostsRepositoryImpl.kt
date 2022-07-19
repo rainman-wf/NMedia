@@ -39,7 +39,7 @@ class PostsRepositoryImpl(
             }
 
             override fun onFailure(call: Call<Post>, t: Throwable) {
-                log(t.message)
+                callback.onFailure(RuntimeException(t.message.toString()))
             }
         })
     }
