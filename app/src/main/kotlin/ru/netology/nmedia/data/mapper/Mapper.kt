@@ -29,6 +29,7 @@ fun NewPostDto.toRequestBody() = PostRequestBody (
     attachment = attachment
 )
 
+
 fun UpdatePostDto.toRequestBody() = PostRequestBody (
     id = id,
     content = content
@@ -43,17 +44,13 @@ fun UnsentPostEntity.toModel() = Post(
 
 @Mapper
 interface PostConverter {
+
     fun toPost(postEntity: PostEntity): Post
 
     @Mapping(target = "syncStatus", source = "synced")
     @Mapping(target = "removed", ignore = true)
     fun toEntity(post: Post, synced: Boolean): PostEntity
 
-    @Mapping(target = "author", ignore = true, defaultValue = AUTHOR)
-    @Mapping(target = "authorAvatar", ignore = true, defaultValue = AUTHOR_AVATAR)
-    fun toRequestBody(newPostDto: NewPostDto) : PostRequestBody
-
-    fun toRequestBody(updatePostDto: UpdatePostDto) : PostRequestBody
 }
 
 

@@ -183,14 +183,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:contentDescription="@string/attachment"
-        android:minHeight="50dp"
-        android:scaleType="center"
-        android:visibility="gone"
+        android:scaleType="fitCenter"
         app:layout_constraintBottom_toTopOf="@id/bottomBarBarrier"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/content"
-        tools:visibility="visible" />
+        tools:srcCompat="@sample/attachment" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

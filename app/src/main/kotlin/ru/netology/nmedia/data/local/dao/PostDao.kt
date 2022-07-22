@@ -7,6 +7,21 @@ import ru.netology.nmedia.data.local.entity.PostEntity
 @Dao
 interface PostDao {
 
+    @Query("SELECT * FROM posts WHERE removed = 0 AND id > 0")
+    fun getAllActual() : List<PostEntity>
+
+    @Query("SELECT id FROM posts WHERE removed = 1")
+    fun getAllRemovedIds() : List<Long>
+
+    @Query("SELECT * FROM posts WHERE id < 0")
+    fun getAllUnsent() : List<PostEntity>
+
+    @Query("UPDATE posts SET syncStatus = 1 WHERE id = :id")
+    fun setSynced (id: Long)
+
+    @Query("UPDATE posts SET syncStatus = 0 WHERE id = :id")
+    fun unsetSynced (id: Long)
+
     @Query("UPDATE posts SET syncStatus = 1 WHERE id = :id")
     fun syncData(id: Long)
 

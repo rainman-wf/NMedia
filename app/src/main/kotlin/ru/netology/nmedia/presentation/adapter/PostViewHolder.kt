@@ -1,11 +1,15 @@
 package ru.netology.nmedia.presentation.adapter
 
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.constants.BASE_URL
@@ -13,7 +17,6 @@ import ru.netology.nmedia.databinding.PostCardBinding
 import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.PostModel
 
 class PostViewHolder(
@@ -33,9 +36,6 @@ class PostViewHolder(
             viewsCount.text = post.views.asUnit()
             likeCount.isChecked = post.likedByMe
 
-            log("post.author ${post.author}")
-            log("author.text ${author.text}")
-
             counters.isVisible = !postModel.statusError && !postModel.statusLoading
             error.isVisible = postModel.statusError
             sending.isVisible = postModel.statusLoading
@@ -46,26 +46,42 @@ class PostViewHolder(
             menu.isEnabled = post.author == AUTHOR
 
             post.attachment?.let {
-
-                val circularProgressDrawable = CircularProgressDrawable(attachmentImage.context)
-                circularProgressDrawable.strokeWidth = 5f
-                circularProgressDrawable.centerRadius = 30f
-                circularProgressDrawable.start()
-
                 Glide.with(attachmentImage)
                     .load("$BASE_URL/images/${it.url}")
                     .timeout(10_000)
-                    .placeholder(circularProgressDrawable)
+                    .listener(object : RequestListener<Drawable> {
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any?,
+                            target: Target<Drawable>?,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            return false
+                        }
+
+                        override fun onResourceReady(
+                            resource: Drawable?,
+                            model: Any?,
+                            target: Target<Drawable>?,
+                            dataSource: DataSource?,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            attachmentImage.isVisible = true
+                            return false
+                        }
+
+                    })
                     .into(attachmentImage)
 
-                attachmentImage.isVisible = true
+            } ?: run {
+                attachmentImage.isVisible = false
             }
 
             if (!post.authorAvatar.isNullOrBlank())
                 Glide.with(avatar)
                     .load("$BASE_URL/avatars/${post.authorAvatar}")
-                    .placeholder(R.drawable.netology_logo)
                     .timeout(10_000)
+                    .placeholder(R.mipmap.ic_avatar)
                     .circleCrop()
                     .into(avatar)
 
