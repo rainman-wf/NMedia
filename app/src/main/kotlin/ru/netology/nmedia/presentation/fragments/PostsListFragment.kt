@@ -1,9 +1,7 @@
 package ru.netology.nmedia.presentation.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -94,7 +92,7 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
             binding.loadingGroup.isVisible = feedModel.statusLoading
             binding.emptyWall.isVisible = feedModel.posts.isEmpty() && !feedModel.statusLoading
             binding.updateList.isRefreshing = feedModel.statusUpdating
-            postAdapter.submitList(feedModel.posts.values.sortedBy { it.post.dateTime }.reversed())
+            postAdapter.submitList(feedModel.posts.values.sortedBy { it.post.published }.reversed())
         }
 
         binding.updateList.setOnRefreshListener {

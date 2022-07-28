@@ -34,4 +34,7 @@ interface UnsentPostDao {
         updateContent(id, content)
         return getById(id)
     }
+
+    @Query("SELECT id FROM unsentPosts LIMIT 1")
+    fun getFirstId() : Long
 }

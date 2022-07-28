@@ -7,6 +7,6 @@ fun NewPostInfo.toPost() : Post {
         id = id,
         author = author,
         content = this.content,
-        dateTime = published,
+        published = published,
     )
 }
