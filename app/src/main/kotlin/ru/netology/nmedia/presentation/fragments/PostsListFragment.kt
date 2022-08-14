@@ -13,9 +13,9 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostAdapter
 import ru.netology.nmedia.di.AppContainerHolder
-import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.presentation.viewmodels.PostListViewModel
 import ru.netology.nmedia.databinding.FragmentPostsListBinding
+import ru.netology.nmedia.domain.models.PostModel
 
 class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
@@ -31,11 +31,11 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         val postAdapter = PostAdapter(
             object : OnPostClickListener {
-                override fun onLike(post: Post) {
-                    viewModel.onLikeClicked(post.id)
+                override fun onLike(postModel: PostModel) {
+                    viewModel.onLikeClicked(postModel.key)
                 }
 
-                override fun onShare(post: Post) {
+                override fun onShare(postModel: PostModel) {
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.unsupported),
@@ -43,33 +43,33 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                     ).show()
                 }
 
-                override fun onEdit(post: Post) {
+                override fun onEdit(postModel: PostModel) {
                     navController.navigate(
                         PostsListFragmentDirections.actionPostsListFragmentToNewPostFragment(
-                            postId = post.id,
-                            postContent = post.content
+                            postId = postModel.key,
+                            postContent = postModel.post.content
                         )
                     )
                 }
 
-                override fun onRemove(post: Post) {
-                    viewModel.onRemoveClicked(post.id)
+                override fun onRemove(postModel: PostModel) {
+                    viewModel.onRemoveClicked(postModel.key)
                 }
 
-                override fun onDetails(post: Post) {
+                override fun onDetails(postModel: PostModel) {
                     navController.navigate(
                         PostsListFragmentDirections.actionPostsListFragmentToPostDetailsFragment(
-                            postId = post.id
+                            postId = postModel.key
                         )
                     )
                 }
 
-                override fun onTryClicked(post: Post) {
-                    viewModel.onTryClicked(post.id)
+                override fun onTryClicked(postModel: PostModel) {
+                    viewModel.onTryClicked(postModel.key)
                 }
 
-                override fun onCancelClicked(post: Post) {
-                    viewModel.onRemoveClicked(post.id)
+                override fun onCancelClicked(postModel: PostModel) {
+                    viewModel.onRemoveClicked(postModel.key)
                 }
             }
         )
@@ -88,11 +88,15 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
             )
         }
 
-        viewModel.liveData.posts.observe(viewLifecycleOwner) { feedModel ->
-            binding.loadingGroup.isVisible = feedModel.statusLoading
-            binding.emptyWall.isVisible = feedModel.posts.isEmpty() && !feedModel.statusLoading
-            binding.updateList.isRefreshing = feedModel.statusUpdating
+        viewModel.liveData.data.observe(viewLifecycleOwner) { feedModel ->
+
             postAdapter.submitList(feedModel.posts.values.sortedBy { it.post.published }.reversed())
+        }
+
+        viewModel.liveData.state.observe(viewLifecycleOwner) {
+            binding.postList.isVisible = !it.loading
+            binding.loadingGroup.isVisible = it.loading
+            binding.updateList.isRefreshing = it.refreshing
         }
 
         binding.updateList.setOnRefreshListener {

@@ -2,11 +2,10 @@ package ru.netology.nmedia.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import ru.netology.nmedia.domain.repository.PostRepository
 import ru.netology.nmedia.domain.usecase.container.PostDetailsUseCaseContainer
 
 class DetailsViewModelFactory(
-    private val liveData: PostsLiveData,
+    private val liveData: LiveData,
     private val postDetailsUseCaseContainer: PostDetailsUseCaseContainer
 ) : ViewModelProvider.Factory {
 

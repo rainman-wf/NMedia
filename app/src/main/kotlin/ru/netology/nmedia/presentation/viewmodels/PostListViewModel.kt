@@ -1,83 +1,68 @@
 package ru.netology.nmedia.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.common.utils.log
-import ru.netology.nmedia.domain.models.FeedModel
-import ru.netology.nmedia.domain.models.Post
-import ru.netology.nmedia.domain.models.PostModel
-import ru.netology.nmedia.domain.repository.PostRepository
+import ru.netology.nmedia.domain.models.FeedModelState
 import ru.netology.nmedia.domain.usecase.container.PostListUseCaseContainer
 
 class PostListViewModel(
-    val liveData: PostsLiveData,
+    val liveData: LiveData,
     private val postListUseCaseContainer: PostListUseCaseContainer
 ) : ViewModel() {
 
     init {
-        liveData.update(FeedModel(statusLoading = true))
+        liveData.state.postValue(FeedModelState(loading = true))
         syncData()
     }
 
     fun onRefreshSwiped() {
-        liveData.setUpdateStatus()
-        syncData()
+        viewModelScope.launch {
+            liveData.state.postValue(FeedModelState(refreshing = true))
+            syncData()
+            liveData.state.value = FeedModelState()
+        }
     }
 
     private fun syncData() {
-        postListUseCaseContainer.syncDataUseCase(
-            object : PostRepository.Callback<Unit> {
-                override fun onSuccess(data: Unit) {
-                    log("success")
-                    liveData.update(
-                        FeedModel(
-                            posts = postListUseCaseContainer.getAllUseCase()
-                                .associateBy { it.post.id }
-                                .toMutableMap()
-                        )
-                    )
-                }
-
-                override fun onFailure(e: Exception) {
-                    log("failure")
-                    liveData.update(
-                        FeedModel(
-                            posts = postListUseCaseContainer.getAllUseCase()
-                                .associateBy { it.post.id }
-                                .toMutableMap(),
-                            statusError = true
-                        )
-                    )
-                }
+        viewModelScope.launch {
+            try {
+                postListUseCaseContainer.syncDataUseCase()
+                liveData.state.value = FeedModelState()
+            } catch (e: Exception) {
+                liveData.state.value = FeedModelState(error = true)
             }
-        )
+        }
     }
 
-    fun onTryClicked(id: Long) {
-
-        val post = liveData.posts.value?.posts?.get(id)?.post ?: return
-
-        liveData.insert(post.id, PostModel(post, statusLoading = true))
-
-        postListUseCaseContainer.sendPostUseCase(
-            post.content,
-            object : PostRepository.Callback<Post> {
-                override fun onSuccess(data: Post) {
-                    postListUseCaseContainer.removePostUseCase(post.id)
-                    liveData.replace(post.id, data.id, PostModel(data))
-                }
-
-                override fun onFailure(e: Exception) {
-                    liveData.insert(post.id, PostModel(post, statusError = true))
-                }
-            })
+    fun onTryClicked(key: Long) {
+        viewModelScope.launch {
+            try {
+                postListUseCaseContainer.trySendPostUseCase(key)
+            } catch (e: Exception) {
+                log(e.message.toString())
+            }
+        }
     }
 
-    fun onLikeClicked(id: Long) {
-        liveData.updateItem(postListUseCaseContainer.likePostUseCase(id))
+    fun onLikeClicked(key: Long) {
+        viewModelScope.launch {
+            try {
+                postListUseCaseContainer.likePostUseCase(key)
+            } catch (e: Exception) {
+                log(e.message.toString())
+            }
+        }
     }
 
-    fun onRemoveClicked(id: Long) {
-        postListUseCaseContainer.removePostUseCase(id)
-        liveData.removeItem(id)
+    fun onRemoveClicked(key: Long) {
+        viewModelScope.launch {
+            try {
+                postListUseCaseContainer.removePostUseCase(key)
+            } catch (e: Exception) {
+                log(e.message.toString())
+            }
+        }
     }
 }

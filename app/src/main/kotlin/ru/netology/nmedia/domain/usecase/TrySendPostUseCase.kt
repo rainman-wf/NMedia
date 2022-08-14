@@ -2,10 +2,8 @@ package ru.netology.nmedia.domain.usecase
 
 import ru.netology.nmedia.domain.repository.PostRepository
 
-class RemovePostUseCase(
-    private val postRepository: PostRepository
-) {
+class TrySendPostUseCase(private val postRepository: PostRepository) {
     suspend operator fun invoke(key: Long) {
-        postRepository.remove(key)
+        postRepository.sendPost(key)
     }
 }

@@ -1,6 +1,6 @@
 package ru.netology.nmedia.data.api
 
-import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.*
 import ru.netology.nmedia.common.constants.MAIN_PATH
 import ru.netology.nmedia.data.api.dto.PostRequestBody
@@ -9,23 +9,23 @@ import ru.netology.nmedia.domain.models.Post
 interface ApiService {
 
     @Headers("Content-Type: application/json")
-    @POST("api/posts")
-    fun send(@Body postRequestBody: PostRequestBody) : Call<Post>
+    @POST(MAIN_PATH)
+    suspend fun send(@Body postRequestBody: PostRequestBody) : Response<Post>
 
     @GET(MAIN_PATH)
-    fun getAll(): Call<List<Post>>
+    suspend fun getAll(): Response<List<Post>>
 
     @POST("$MAIN_PATH/{id}/likes")
-    fun like(@Path("id") id: Long): Call<Post>
+    suspend fun like(@Path("id") id: Long): Response<Post>
 
     @DELETE("$MAIN_PATH/{id}/likes")
-    fun unlike(@Path("id") id: Long): Call<Post>
+    suspend fun unlike(@Path("id") id: Long): Response<Post>
 
     @DELETE("$MAIN_PATH/{id}")
-    fun remove(@Path("id") id: Long): Call<Unit>
+    suspend fun remove(@Path("id") id: Long): Response<Unit>
 
     @GET("$MAIN_PATH/{id}")
-    fun getById(@Path("id") id: Long): Call<Post>
+    suspend fun getById(@Path("id") id: Long): Response<Post>
 }
 
 

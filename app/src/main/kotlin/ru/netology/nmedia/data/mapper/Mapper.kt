@@ -6,50 +6,62 @@ import org.mapstruct.factory.Mappers
 import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.constants.AUTHOR_AVATAR
 import ru.netology.nmedia.data.api.dto.PostRequestBody
+import ru.netology.nmedia.data.local.entity.AttachmentEntity
 import ru.netology.nmedia.data.local.entity.PostEntity
-import ru.netology.nmedia.data.local.entity.UnsentPostEntity
 import ru.netology.nmedia.domain.models.NewPostDto
 import ru.netology.nmedia.domain.models.Post
-import ru.netology.nmedia.domain.models.UpdatePostDto
+import ru.netology.nmedia.domain.models.PostModel
+import java.util.*
 
-fun PostEntity.toModel(): Post {
+fun PostEntity.toPost(): Post {
     val converter = Mappers.getMapper(PostConverter::class.java)
     return converter.toPost(this)
 }
 
-fun Post.toEntity(synced: Boolean): PostEntity {
+fun PostEntity.toModel() = PostModel(
+    key = key,
+    post = toPost(),
+    state = state
+)
+
+fun Post.toEntity(key: Long, synced: Boolean, state: PostModel.State): PostEntity {
     val converter = Mappers.getMapper(PostConverter::class.java)
-    return converter.toEntity(this, synced)
+    return converter.toEntity(key, this, synced, state)
 }
 
-fun NewPostDto.toRequestBody() = PostRequestBody (
-    author = AUTHOR,
-    authorAvatar = AUTHOR_AVATAR,
-    content = content,
-    attachment = attachment
+fun Post.toModel(key: Long) = PostModel(
+    key = key,
+    post = this
 )
 
 
-fun UpdatePostDto.toRequestBody() = PostRequestBody (
+fun PostEntity.toRequestBody() = PostRequestBody(
     id = id,
+    author = author,
+    authorAvatar = authorAvatar,
     content = content
 )
 
-fun UnsentPostEntity.toModel() = Post(
-    id = id,
-    author = author,
+fun NewPostDto.toEntity() = PostEntity(
+    author = AUTHOR,
+    authorAvatar = AUTHOR_AVATAR,
     content = content,
-    published = published
+    published = Date().time / 1000,
+    synced = false,
+    state = PostModel.State.LOADING
 )
+
 
 @Mapper
 interface PostConverter {
 
     fun toPost(postEntity: PostEntity): Post
 
-    @Mapping(target = "syncStatus", source = "synced")
+    @Mapping(target = "key", source = "key")
+    @Mapping(target = "synced", source = "synced")
     @Mapping(target = "removed", ignore = true)
-    fun toEntity(post: Post, synced: Boolean): PostEntity
+    @Mapping(target = "state", source = "state")
+    fun toEntity(key: Long, post: Post, synced: Boolean, state: PostModel.State): PostEntity
 
 }
 

@@ -12,3 +12,5 @@ data class Post(
     val views: Int = 0,
     val attachment: Attachment? = null
 )
+
+

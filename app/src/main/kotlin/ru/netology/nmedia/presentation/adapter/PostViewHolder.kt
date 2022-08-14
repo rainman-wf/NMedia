@@ -14,9 +14,9 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.constants.BASE_URL
 import ru.netology.nmedia.databinding.PostCardBinding
-import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
+import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.PostModel
 
 class PostViewHolder(
@@ -36,12 +36,12 @@ class PostViewHolder(
             viewsCount.text = post.views.asUnit()
             likeCount.isChecked = post.likedByMe
 
-            counters.isVisible = !postModel.statusError && !postModel.statusLoading
-            error.isVisible = postModel.statusError
-            sending.isVisible = postModel.statusLoading
-            trySending.isEnabled = postModel.statusError
-            cancel.isEnabled = postModel.statusError
-            sendingBar.isVisible = postModel.statusError || postModel.statusLoading
+            counters.isVisible = postModel.state == PostModel.State.OK
+            error.isVisible = postModel.state == PostModel.State.ERROR
+            sending.isVisible = postModel.state == PostModel.State.LOADING
+            trySending.isEnabled = postModel.state == PostModel.State.ERROR
+            cancel.isEnabled = postModel.state == PostModel.State.LOADING || postModel.state == PostModel.State.ERROR
+            sendingBar.isVisible = postModel.state == PostModel.State.LOADING || postModel.state == PostModel.State.ERROR
 
             menu.isEnabled = post.author == AUTHOR
 
@@ -86,22 +86,22 @@ class PostViewHolder(
                     .into(avatar)
 
 
-            trySending.setOnClickListener { onPostClickListener.onTryClicked(post) }
-            cancel.setOnClickListener { onPostClickListener.onCancelClicked(post) }
-            likeCount.setOnClickListener { onPostClickListener.onLike(post) }
-            sharesCount.setOnClickListener { onPostClickListener.onShare(post) }
-            menu.setOnClickListener { showPopupMenu(menu, post) }
-            itemConteiner.setOnClickListener { onPostClickListener.onDetails(post) }
+            trySending.setOnClickListener { onPostClickListener.onTryClicked(postModel) }
+            cancel.setOnClickListener { onPostClickListener.onCancelClicked(postModel) }
+            likeCount.setOnClickListener { onPostClickListener.onLike(postModel) }
+            sharesCount.setOnClickListener { onPostClickListener.onShare(postModel) }
+            menu.setOnClickListener { showPopupMenu(menu, postModel) }
+            itemConteiner.setOnClickListener { onPostClickListener.onDetails(postModel) }
         }
     }
 
-    private fun showPopupMenu(view: View, post: Post) {
+    private fun showPopupMenu(view: View, postModel: PostModel) {
         with(PopupMenu(view.context, view)) {
             inflate(R.menu.post_option_menu)
             setOnMenuItemClickListener {
                 when (it.itemId) {
-                    R.id.menuItemEdit -> setListener(onPostClickListener.onEdit(post))
-                    R.id.menuItemRemove -> setListener(onPostClickListener.onRemove(post))
+                    R.id.menuItemEdit -> setListener(onPostClickListener.onEdit(postModel))
+                    R.id.menuItemRemove -> setListener(onPostClickListener.onRemove(postModel))
                     else -> false
                 }
             }

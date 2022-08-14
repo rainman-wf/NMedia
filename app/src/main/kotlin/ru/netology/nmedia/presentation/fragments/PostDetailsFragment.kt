@@ -10,7 +10,7 @@ import androidx.navigation.fragment.navArgs
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentPostDetailsBinding
 import ru.netology.nmedia.di.AppContainerHolder
-import ru.netology.nmedia.domain.models.Post
+import ru.netology.nmedia.domain.models.PostModel
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostViewHolder
 import ru.netology.nmedia.presentation.viewmodels.DetailsViewModel
@@ -22,7 +22,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
     }
 
     private val args by navArgs<PostDetailsFragmentArgs>()
-    private val postId by lazy { args.postId }
+    private val postModeKey by lazy { args.postId }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -33,45 +33,45 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
         val postViewHolder = PostViewHolder(
             binding.postCard,
             object : OnPostClickListener {
-                override fun onLike(post: Post) {
-                    viewModel.onLikeClicked(post.id)
+                override fun onLike(postModel: PostModel) {
+                    viewModel.onLikeClicked(postModel.key)
                 }
 
-                override fun onShare(post: Post) {
+                override fun onShare(postModel: PostModel) {
                     val intent = Intent().apply {
                         action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, post.content)
+                        putExtra(Intent.EXTRA_TEXT, postModel.post.content)
                         type = "text/plain"
                     }
                     val shareIntent = Intent.createChooser(intent, "Chose")
                     startActivity(shareIntent)
                 }
 
-                override fun onEdit(post: Post) {
+                override fun onEdit(postModel: PostModel) {
                     navController.navigate(
                         PostDetailsFragmentDirections.actionPostDetailsFragmentToNewPostFragment(
-                            postId, binding.postCard.content.toString()
+                            postModeKey, binding.postCard.content.toString()
                         )
                     )
                 }
 
-                override fun onRemove(post: Post) {
+                override fun onRemove(postModel: PostModel) {
                     navController.navigateUp()
-                    viewModel.onRemoveClicked(postId)
+                    viewModel.onRemoveClicked(postModeKey)
                 }
 
-                override fun onDetails(post: Post) {}
+                override fun onDetails(postModel: PostModel) {}
 
-                override fun onTryClicked(post: Post) {}
+                override fun onTryClicked(postModel: PostModel) {}
 
-                override fun onCancelClicked(post: Post) {}
+                override fun onCancelClicked(postModel: PostModel) {}
 
             }
         )
 
-        viewModel.liveData.posts
+        viewModel.liveData.data
             .observe(viewLifecycleOwner) { posts ->
-                val postModel = posts.posts[postId] ?: run {
+                val postModel = posts.posts[postModeKey] ?: run {
                     findNavController().navigateUp()
                     return@observe
                 }

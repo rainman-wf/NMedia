@@ -1,16 +1,16 @@
 package ru.netology.nmedia.domain.usecase
 
-import ru.netology.nmedia.domain.models.Post
+import ru.netology.nmedia.common.utils.log
+import ru.netology.nmedia.domain.models.NewPostDto
+import ru.netology.nmedia.domain.models.PostModel
 import ru.netology.nmedia.domain.models.UpdatePostDto
 import ru.netology.nmedia.domain.repository.PostRepository
-import ru.netology.nmedia.domain.repository.UnsentPostRepository
 
 class SavePostUseCase(
-    private val postRepository: PostRepository,
-    private val unsentPostRepository: UnsentPostRepository
+    private val postRepository: PostRepository
 ) {
-    operator fun invoke(id: Long = 0, content: String): Post {
-        return if (id <= 0L) unsentPostRepository.save(id, content)
-        else postRepository.update(UpdatePostDto(id, content))
+    suspend operator fun invoke(key: Long, content: String) {
+        if (key == 0L) postRepository.save(NewPostDto(content))
+        else postRepository.update(UpdatePostDto(key, content))
     }
 }

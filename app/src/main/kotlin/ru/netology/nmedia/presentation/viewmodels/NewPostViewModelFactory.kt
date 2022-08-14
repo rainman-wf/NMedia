@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import ru.netology.nmedia.domain.usecase.container.NewPostUseCaseContainer
 
 class NewPostViewModelFactory(
-    private val liveData: PostsLiveData,
+    private val liveData: LiveData,
     private val newPostUseCaseContainer: NewPostUseCaseContainer
 ) :
     ViewModelProvider.Factory {
