@@ -90,7 +90,11 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         viewModel.liveData.data.observe(viewLifecycleOwner) { feedModel ->
 
-            postAdapter.submitList(feedModel.posts.values.sortedBy { it.post.published }.reversed())
+            val postList = mutableListOf<PostModel>()
+
+            postList.addAll(feedModel.posts.values.filterNot { it.post.id == 0L }.sortedBy { it.post.id }.reversed())
+            postList.addAll( feedModel.posts.values.filterNot { it.post.id != 0L }.sortedBy { it.post.id }.reversed())
+            postAdapter.submitList(postList)
         }
 
         viewModel.liveData.state.observe(viewLifecycleOwner) {

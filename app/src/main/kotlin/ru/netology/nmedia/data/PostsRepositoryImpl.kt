@@ -49,6 +49,7 @@ class PostsRepositoryImpl(
             val post = api.send(entity.toRequestBody()).body()!!
             postDao.setServerId(key, post.id)
             postDao.setSyncedById(post.id)
+            if (entity.id == 0L) postDao.setServerDateTime(key, post.published)
             postDao.setState(key, PostModel.State.OK)
         } catch (_: Exception) {
             postDao.setState(key, PostModel.State.ERROR)

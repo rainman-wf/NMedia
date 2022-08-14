@@ -44,6 +44,9 @@ interface PostDao {
 
     // update
 
+    @Query("UPDATE posts SET published = :dateTime WHERE `key` = :key")
+    suspend fun setServerDateTime(key: Long, dateTime: Long)
+
     @Insert(onConflict = REPLACE)
     suspend fun replace(postEntity: PostEntity)
 
