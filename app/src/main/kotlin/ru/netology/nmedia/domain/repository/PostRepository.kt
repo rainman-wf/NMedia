@@ -1,11 +1,11 @@
 package ru.netology.nmedia.domain.repository
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.domain.models.*
 
 interface PostRepository {
 
-    val posts: LiveData<List<PostModel>>
+    val posts: Flow<List<PostModel>>
 
     suspend fun getByKey(key: Long) : PostModel
     suspend fun save(newPostDto: NewPostDto)

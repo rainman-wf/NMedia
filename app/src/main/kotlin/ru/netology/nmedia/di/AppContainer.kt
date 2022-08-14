@@ -64,7 +64,7 @@ class AppContainer(context: Context) {
 
     private val postsLiveData = LiveData(getAllUseCase)
 
-    val newPostViewModelFactory = NewPostViewModelFactory(postsLiveData, newPostUseCaseContainer)
+    val newPostViewModelFactory = NewPostViewModelFactory(newPostUseCaseContainer)
     val detailsViewModelFactory =
         DetailsViewModelFactory(postsLiveData, postDetailsUseCaseContainer)
     val postListViewModelFactory = PostListViewModelFactory(postsLiveData, postListUseCaseContainer)

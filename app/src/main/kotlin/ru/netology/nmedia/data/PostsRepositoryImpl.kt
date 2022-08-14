@@ -1,7 +1,9 @@
 package ru.netology.nmedia.data
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
@@ -21,8 +23,8 @@ class PostsRepositoryImpl(
     private val postDao: PostDao
 ) : PostRepository {
 
-    override val posts: LiveData<List<PostModel>> =
-        postDao.getAll().map { it.map(PostEntity::toModel) }
+    override val posts: Flow<List<PostModel>> =
+        postDao.getAll().map { it.map(PostEntity::toModel) }.flowOn(Dispatchers.Default)
 
     override suspend fun getByKey(key: Long) = postDao.getByKey(key).toModel()
 

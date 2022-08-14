@@ -1,9 +1,9 @@
 package ru.netology.nmedia.data.local.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
 import androidx.room.OnConflictStrategy.IGNORE
 import androidx.room.OnConflictStrategy.REPLACE
+import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.domain.models.PostModel
 
@@ -13,7 +13,7 @@ interface PostDao {
     // get all
 
     @Query("SELECT * FROM posts WHERE removed = 0")
-    fun getAll(): LiveData<List<PostEntity>>
+    fun getAll(): Flow<List<PostEntity>>
 
     @Query("SELECT * FROM posts where id = 0")
     suspend fun getAllUnsent() : List<PostEntity>
