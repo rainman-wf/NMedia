@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import ru.netology.nmedia.domain.usecase.container.PostDetailsUseCaseContainer
 
 class DetailsViewModel(
-    val liveData: LiveData,
+    val modelsLiveData: ModelsLiveData,
     private val postDetailsUseCaseContainer: PostDetailsUseCaseContainer
 ) : ViewModel() {
 

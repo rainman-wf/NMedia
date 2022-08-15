@@ -18,8 +18,8 @@ interface PostDao {
     @Query("SELECT * FROM posts where id = 0")
     suspend fun getAllUnsent() : List<PostEntity>
 
-    @Query("SELECT * FROM posts WHERE id != 0")
-    suspend fun getAllSent() : List<PostEntity>
+    @Query("SELECT id FROM posts WHERE id != 0")
+    suspend fun getAllSentIds() : List<Long>
 
     @Query("SELECT id FROM posts WHERE removed = 1")
     suspend fun getAllRemovedIds() : List<Long>
@@ -28,6 +28,9 @@ interface PostDao {
 
     @Query("SELECT * FROM posts WHERE `key` = :key")
     suspend fun getByKey(key: Long) : PostEntity
+
+    @Query("SELECT * FROM posts WHERE id = :id")
+    fun getById(id: Long): PostEntity
 
     // insert
 
@@ -93,6 +96,9 @@ interface PostDao {
 
     // set states
 
+    @Query("UPDATE posts SET read = 1 WHERE `key` = :key")
+    suspend fun setRead(key: Long)
+
     @Query("UPDATE posts SET removed = 1 WHERE `key` = :key")
     suspend fun setRemoved(key: Long)
 
@@ -120,5 +126,6 @@ interface PostDao {
 
     @Query("DELETE FROM posts WHERE id = :id")
     suspend fun removeById(id: Long): Int
+
 
 }

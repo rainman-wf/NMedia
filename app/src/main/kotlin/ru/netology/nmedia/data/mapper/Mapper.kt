@@ -21,12 +21,13 @@ fun PostEntity.toPost(): Post {
 fun PostEntity.toModel() = PostModel(
     key = key,
     post = toPost(),
-    state = state
+    state = state,
+    read = read
 )
 
-fun Post.toEntity(key: Long, synced: Boolean, state: PostModel.State): PostEntity {
+fun Post.toEntity(key: Long, synced: Boolean, state: PostModel.State, read: Boolean = true): PostEntity {
     val converter = Mappers.getMapper(PostConverter::class.java)
-    return converter.toEntity(key, this, synced, state)
+    return converter.toEntity(key, this, synced, state, read)
 }
 
 fun Post.toModel(key: Long) = PostModel(
@@ -48,7 +49,7 @@ fun NewPostDto.toEntity() = PostEntity(
     content = content,
     published = Date().time / 1000,
     synced = false,
-    state = PostModel.State.LOADING
+    state = PostModel.State.LOADING,
 )
 
 
@@ -61,7 +62,8 @@ interface PostConverter {
     @Mapping(target = "synced", source = "synced")
     @Mapping(target = "removed", ignore = true)
     @Mapping(target = "state", source = "state")
-    fun toEntity(key: Long, post: Post, synced: Boolean, state: PostModel.State): PostEntity
+    @Mapping(target = "read", source = "read")
+    fun toEntity(key: Long, post: Post, synced: Boolean, state: PostModel.State, read: Boolean): PostEntity
 
 }
 

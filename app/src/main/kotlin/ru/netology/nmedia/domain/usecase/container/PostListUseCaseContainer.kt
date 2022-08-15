@@ -7,5 +7,7 @@ class PostListUseCaseContainer(
     val trySendPostUseCase: TrySendPostUseCase,
     val likePostUseCase: LikePostUseCase,
     val removePostUseCase: RemovePostUseCase,
-    val syncDataUseCase: SyncDataUseCase
+    val syncDataUseCase: SyncDataUseCase,
+    val getNewerUseCase: GetNewerUseCase,
+    val setReadUseCase: SetReadUseCase
 )

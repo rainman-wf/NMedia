@@ -23,4 +23,5 @@ data class PostEntity(
     @ColumnInfo(name = "synced") val synced: Boolean,
     @ColumnInfo(name = "removed") val removed: Boolean = false,
     @ColumnInfo(name = "state") val state: PostModel.State,
+    @ColumnInfo(name = "read") val read: Boolean = true,
 )

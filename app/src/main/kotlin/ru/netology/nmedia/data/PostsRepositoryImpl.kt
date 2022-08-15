@@ -1,10 +1,11 @@
 package ru.netology.nmedia.data
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
 import ru.netology.nmedia.common.constants.AUTHOR
+import ru.netology.nmedia.common.exceptions.ApiError
+import ru.netology.nmedia.common.exceptions.AppError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
 import ru.netology.nmedia.data.local.dao.PostDao
@@ -92,55 +93,68 @@ class PostsRepositoryImpl(
     private suspend fun tryRemove(id: Long) {
         val response = api.remove(id)
         if (!response.isSuccessful) error("Response code: ${response.code()}")
-
         postDao.removeById(id)
     }
 
-    private suspend fun getAllRemote(): Map<Long, Post> {
+    private suspend fun getAllRemote(): List<Post> {
         val response = api.getAll()
         if (!response.isSuccessful) error("Response code: ${response.code()}")
-        return response.body()?.associateBy { it.id } ?: error("Body is null")
+        return response.body() ?: error("Body is null")
     }
 
     override suspend fun syncData() {
 
-        val posts = getAllRemote()
-
-        val sentPost = postDao.getAllSent()
-        val sentPostIds = sentPost.map { it.id }
-
-        val postsToInsert = posts.values
-            .filterNot { sentPostIds.contains(it.id) }
-
-        postDao.insert(postsToInsert.map {
-            it.toEntity(0, true, PostModel.State.OK)
-        })
+        val posts = getAllRemote() // посты с сервера
 
         postDao.getAllRemovedIds().forEach { tryRemove(it) }
 
-        sentPostIds
-            .filterNot(posts.values.map { it.id }::contains)
+        postDao.getAllSentIds().sorted()
+            .filterNot(posts.map { it.id }::contains)
             .forEach { postDao.removeById(it) }
 
-        sentPost.forEach { entity -> posts[entity.id]?.let { it -> entity.sync(it) } }
+        posts
+            .filter { postDao.getAllSentIds().contains(it.id) }
+            .forEach { it.sync(postDao.getById(it.id)) }
+
         postDao.getAllUnsent().forEach { sendPost(it.key) }
+        /* возможно лучше оставить это решение за пользователем
+        после первой же неудачной попытке отправить */
     }
 
-    private fun PostEntity.sameAsPost(post: Post): Boolean {
-        return content == post.content &&
-                likedByMe == post.likedByMe &&
-                likes == post.likes
+    override suspend fun setRead(key: Long) {
+        postDao.setRead(key)
     }
 
-    private suspend fun PostEntity.sync(post: Post) {
-        if (!synced) {
-            if (author == AUTHOR && content != post.content) sendPost(this.key)
+
+    private fun Post.sameAsEntity(entity: PostEntity): Boolean {
+        return content == entity.content &&
+                likedByMe == entity.likedByMe &&
+                likes == entity.likes
+    }
+
+    private suspend fun Post.sync(entity: PostEntity) {
+        if (!entity.synced) {
+            if (author == AUTHOR && content != content) sendPost(entity.key)
             if (likedByMe) sendLike(id) else sendUnlike(id)
-            if (removed) tryRemove(id)
         } else {
-            if (!this.sameAsPost(post)) {
-                postDao.replace(this)
+            if (!sameAsEntity(entity)) {
+                postDao.replace(entity)
             }
         }
     }
+
+    override fun getNewerCount(): Flow<Int> = flow {
+        while (true) {
+
+            delay(10_000)
+            val last = postDao.getAllSentIds().maxOrNull() ?: 0L
+            val response = api.getNewer(last)
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            postDao.insert(body.map { it.toEntity(0, true, PostModel.State.OK, false) })
+            emit(body.size)
+
+        }
+    }
+        .catch { log( AppError.from(it).message.toString()) }
+        .flowOn(Dispatchers.Default)
 }

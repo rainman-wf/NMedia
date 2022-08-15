@@ -1,15 +1,19 @@
 package ru.netology.nmedia.presentation.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.core.view.get
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.R
+import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostAdapter
 import ru.netology.nmedia.di.AppContainerHolder
@@ -23,6 +27,7 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
         (requireActivity() as AppContainerHolder).appContainer.postListViewModelFactory
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -88,16 +93,38 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
             )
         }
 
-        viewModel.liveData.data.observe(viewLifecycleOwner) { feedModel ->
-
-            val postList = mutableListOf<PostModel>()
-
-            postList.addAll(feedModel.posts.values.filterNot { it.post.id == 0L }.sortedBy { it.post.id }.reversed())
-            postList.addAll( feedModel.posts.values.filterNot { it.post.id != 0L }.sortedBy { it.post.id }.reversed())
-            postAdapter.submitList(postList)
+        viewModel.modelsLiveData.data.observe(viewLifecycleOwner) { feedModel ->
+            val unread = feedModel.posts.values.filterNot { it.read }
+            binding.newerCount.text = "${getText(R.string.new_posts)} ${unread.size}"
+            binding.newerCount.isVisible = unread.isNotEmpty()
+            postAdapter.submitList(feedModel.posts.values.sortedBy { it.post.published }.reversed())
         }
 
-        viewModel.liveData.state.observe(viewLifecycleOwner) {
+        binding.newerCount.setOnClickListener {
+            binding.postList.layoutManager?.scrollToPosition(0)
+        }
+
+        viewModel.newCount.observe(viewLifecycleOwner) {}
+
+        binding.postList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager: LinearLayoutManager =
+                    recyclerView.layoutManager as LinearLayoutManager
+                val currentPosition = layoutManager.findFirstCompletelyVisibleItemPosition()
+                val lastPosition = layoutManager.itemCount - 1
+                for (position in currentPosition..lastPosition) {
+                    try {
+                        val post = postAdapter.getPost(position)
+                        log("${post.key} ${post.read}")
+                        if (!post.read) viewModel.setRead(post.key)
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+        })
+
+        viewModel.modelsLiveData.state.observe(viewLifecycleOwner) {
             binding.postList.isVisible = !it.loading
             binding.loadingGroup.isVisible = it.loading
             binding.updateList.isRefreshing = it.refreshing

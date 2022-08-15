@@ -11,4 +11,5 @@
     <string name="try_again" translatable="false">Повторить</string>
     <string name="unsupported">Функция не поддерживается</string>
     <string name="loading">ЗАГРУЗКА</string>
+    <string name="new_posts">Новые посты</string>
 </resources>

@@ -41,6 +41,8 @@ class AppContainer(context: Context) {
     private val removePostUseCase = RemovePostUseCase(postRepository)
     private val syncDataUseCase = SyncDataUseCase(postRepository)
     private val getPostByIdUseCase = GetPostByIdUseCase(postRepository)
+    private val getNewerUseCase = GetNewerUseCase(postRepository)
+    private val setReadUseCase = SetReadUseCase(postRepository)
 
     private val newPostUseCaseContainer = NewPostUseCaseContainer(
         trySendPostUseCase,
@@ -53,7 +55,9 @@ class AppContainer(context: Context) {
         trySendPostUseCase,
         likePostUseCase,
         removePostUseCase,
-        syncDataUseCase
+        syncDataUseCase,
+        getNewerUseCase,
+        setReadUseCase
     )
 
     private val postDetailsUseCaseContainer = PostDetailsUseCaseContainer(
@@ -62,12 +66,12 @@ class AppContainer(context: Context) {
         getPostByIdUseCase
     )
 
-    private val postsLiveData = LiveData(getAllUseCase)
+    private val postsModelsLiveData = ModelsLiveData(getAllUseCase)
 
     val newPostViewModelFactory = NewPostViewModelFactory(newPostUseCaseContainer)
     val detailsViewModelFactory =
-        DetailsViewModelFactory(postsLiveData, postDetailsUseCaseContainer)
-    val postListViewModelFactory = PostListViewModelFactory(postsLiveData, postListUseCaseContainer)
+        DetailsViewModelFactory(postsModelsLiveData, postDetailsUseCaseContainer)
+    val postListViewModelFactory = PostListViewModelFactory(postsModelsLiveData, postListUseCaseContainer)
 }
 
 

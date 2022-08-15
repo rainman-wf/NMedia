@@ -26,6 +26,10 @@ interface ApiService {
 
     @GET("$MAIN_PATH/{id}")
     suspend fun getById(@Path("id") id: Long): Response<Post>
+
+    @GET("$MAIN_PATH/{id}/newer")
+    suspend fun getNewer(@Path("id") id: Long): Response<List<Post>>
+
 }
 
 

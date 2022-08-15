@@ -19,5 +19,9 @@ class PostAdapter(private val onPostClickListener: OnPostClickListener) :
         val post = getItem(position)
         holder.bind(post)
     }
+
+    fun getPost(position: Int): PostModel {
+        return getItem(position)
+    }
 }
 

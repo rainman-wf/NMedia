@@ -69,7 +69,7 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
             }
         )
 
-        viewModel.liveData.data
+        viewModel.modelsLiveData.data
             .observe(viewLifecycleOwner) { posts ->
                 val postModel = posts.posts[postModeKey] ?: run {
                     findNavController().navigateUp()
