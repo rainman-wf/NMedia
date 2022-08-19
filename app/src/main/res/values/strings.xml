@@ -24,4 +24,6 @@
     <string name="unsupported">Unsupported function</string>
     <string name="attachment" translatable="false">attachment</string>
     <string name="new_posts">New posts</string>
+    <string name="back">Back</string>
+    <string name="post_editor">Post editor</string>
 </resources>

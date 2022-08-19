@@ -116,7 +116,6 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                 for (position in currentPosition..lastPosition) {
                     try {
                         val post = postAdapter.getPost(position)
-                        log("${post.key} ${post.read}")
                         if (!post.read) viewModel.setRead(post.key)
                     } catch (_: Exception) {
                     }

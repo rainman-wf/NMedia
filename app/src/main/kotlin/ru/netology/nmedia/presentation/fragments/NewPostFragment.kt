@@ -1,7 +1,12 @@
 package ru.netology.nmedia.presentation.fragments
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -21,11 +26,30 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
     private val args: NewPostFragmentArgs by navArgs()
     private val postId by lazy { args.postId }
 
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+//        requireActivity().actionBar
+//
+//        requireActivity().title = "Edit Post"
+//        requireActivity().actionBar?.setHomeButtonEnabled(true)
+//        requireActivity().actionBar?.setDisplayHomeAsUpEnabled(true)
+//
+//        requireActivity().addMenuProvider(object : MenuProvider {
+//            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+//                menuInflater.inflate(R.menu.edit_content_menu, menu)
+//            }
+//
+//            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+//                return true
+//            }
+//
+//        })
+
         val binding = FragmentNewPostBinding.bind(view)
-        val navController = findNavController()
+
 
 
         binding.msgInputText.setText(args.postContent)
@@ -40,13 +64,13 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
                 viewModel.onSaveClicked(postId, msgInputText.text.toString())
 
-                navController.navigateUp()
+
                 msgInputText.text.clear()
 
             }
 
             cancel.setOnClickListener {
-                navController.navigateUp()
+
                 msgInputText.text.clear()
             }
 
