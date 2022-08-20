@@ -16,7 +16,6 @@ import ru.netology.nmedia.common.constants.BASE_URL
 import ru.netology.nmedia.databinding.PostCardBinding
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.PostModel
 
 class PostViewHolder(
@@ -47,7 +46,7 @@ class PostViewHolder(
 
             post.attachment?.let {
                 Glide.with(attachmentImage)
-                    .load("$BASE_URL/images/${it.url}")
+                    .load(post.attachment.url)
                     .timeout(10_000)
                     .listener(object : RequestListener<Drawable> {
                         override fun onLoadFailed(

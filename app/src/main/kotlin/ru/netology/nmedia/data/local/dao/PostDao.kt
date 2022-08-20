@@ -4,6 +4,7 @@ import androidx.room.*
 import androidx.room.OnConflictStrategy.IGNORE
 import androidx.room.OnConflictStrategy.REPLACE
 import kotlinx.coroutines.flow.Flow
+import retrofit2.http.Url
 import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.domain.models.PostModel
 
@@ -46,6 +47,9 @@ interface PostDao {
     }
 
     // update
+
+    @Query("UPDATE posts SET attachment_url = :url WHERE `key` = :key")
+    suspend fun setMediaUrl(key: Long, url: String)
 
     @Query("UPDATE posts SET published = :dateTime WHERE `key` = :key")
     suspend fun setServerDateTime(key: Long, dateTime: Long)

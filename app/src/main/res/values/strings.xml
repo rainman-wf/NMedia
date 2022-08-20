@@ -26,4 +26,6 @@
     <string name="new_posts">New posts</string>
     <string name="back">Back</string>
     <string name="post_editor">Post editor</string>
+    <string name="photo">Photo</string>
+    <string name="gallery">Gallery</string>
 </resources>

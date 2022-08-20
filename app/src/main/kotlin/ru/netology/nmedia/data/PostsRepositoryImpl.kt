@@ -1,23 +1,27 @@
 package ru.netology.nmedia.data
 
+import androidx.core.net.toFile
+import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.common.constants.AUTHOR
+import ru.netology.nmedia.common.constants.BASE_URL
 import ru.netology.nmedia.common.exceptions.ApiError
 import ru.netology.nmedia.common.exceptions.AppError
+import ru.netology.nmedia.common.exceptions.NetworkError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
 import ru.netology.nmedia.data.local.dao.PostDao
 import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.data.mapper.toEntity
 import ru.netology.nmedia.data.mapper.toModel
-import ru.netology.nmedia.domain.models.Post
 import ru.netology.nmedia.domain.repository.PostRepository
 import ru.netology.nmedia.data.mapper.toRequestBody
-import ru.netology.nmedia.domain.models.NewPostDto
-import ru.netology.nmedia.domain.models.PostModel
-import ru.netology.nmedia.domain.models.UpdatePostDto
+import ru.netology.nmedia.domain.models.*
 
 class PostsRepositoryImpl(
     private val api: ApiService,
@@ -41,20 +45,27 @@ class PostsRepositoryImpl(
 
     override suspend fun sendPost(key: Long) {
 
-        log(postDao.getByKey(key).id)
-
         val entity = postDao.getByKey(key)
         if (entity.id == 0L) postDao.setState(key, PostModel.State.LOADING)
 
-        log(postDao.getByKey(key).state)
+        if (entity.attachment != null && !entity.attachment.url.contains("http")) {
+            log("try upload")
+            coroutineScope {
+                val imageServerId = upload(UploadMediaDto(entity.attachment.url.toUri().toFile()))?.id
+                imageServerId?.let { postDao.setMediaUrl(key, "${BASE_URL}/$it")}
+            }
 
+        }
+        log("try send")
         try {
             val post = api.send(entity.toRequestBody()).body()!!
+            log("post done")
             postDao.setServerId(key, post.id)
             postDao.setSyncedById(post.id)
             if (entity.id == 0L) postDao.setServerDateTime(key, post.published)
             postDao.setState(key, PostModel.State.OK)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            log(e.message.toString())
             postDao.setState(key, PostModel.State.ERROR)
         }
     }
@@ -125,7 +136,6 @@ class PostsRepositoryImpl(
         postDao.setRead(key)
     }
 
-
     private fun Post.sameAsEntity(entity: PostEntity): Boolean {
         return content == entity.content &&
                 likedByMe == entity.likedByMe &&
@@ -155,6 +165,16 @@ class PostsRepositoryImpl(
 
         }
     }
-        .catch { log( AppError.from(it).message.toString()) }
+        .catch { log(AppError.from(it).message.toString()) }
         .flowOn(Dispatchers.Default)
+
+    private suspend fun upload(uploadMediaDto: UploadMediaDto): Media? {
+        val media = MultipartBody.Part.create(uploadMediaDto.file.asRequestBody())
+        return try {
+            val response = api.uploadMedia(media)
+            response.body()
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

@@ -2,8 +2,12 @@ package ru.netology.nmedia.presentation.fragments
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.core.view.MenuProvider
 import androidx.core.view.get
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -33,6 +37,17 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         val binding = FragmentPostsListBinding.bind(view)
         val navController = findNavController()
+
+
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.clear()
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return false
+            }
+        },viewLifecycleOwner)
 
         val postAdapter = PostAdapter(
             object : OnPostClickListener {

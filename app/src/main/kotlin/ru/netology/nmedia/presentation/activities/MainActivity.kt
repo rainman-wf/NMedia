@@ -1,18 +1,12 @@
 package ru.netology.nmedia.presentation.activities
 
 import android.os.Bundle
-import android.os.PersistableBundle
-import android.view.Menu
-import android.view.MenuItem
 import android.widget.Toast
-import android.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
-import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -22,13 +16,13 @@ import ru.netology.nmedia.application.App
 import ru.netology.nmedia.databinding.ActivityMainBinding
 import ru.netology.nmedia.di.AppContainerHolder
 
-class MainActivity : AppCompatActivity(R.layout.activity_main), AppContainerHolder {
+class MainActivity : AppCompatActivity(), AppContainerHolder {
 
     override val appContainer: AppContainer by lazy { createContainer() }
     private lateinit var navController: NavController
 
-    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -39,7 +33,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), AppContainerHold
         navController = navHost.navController
         val config = AppBarConfiguration(navController.graph)
 
-        binding.toolbar.setupWithNavController(navController, config)
+        NavigationUI.setupActionBarWithNavController(this, navController, config)
 
         checkGoogleApiAvailability()
     }

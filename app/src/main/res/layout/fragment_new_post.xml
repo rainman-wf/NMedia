@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -9,40 +9,48 @@
 
     <EditText
         android:id="@+id/msgInputText"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:autoLink="web"
-        android:hint="@string/input_message"
-        android:inputType="textMultiLine|textWebEditText"
-        android:gravity="top|start"
-        android:linksClickable="true"
         android:background="@android:color/transparent"
-        android:textColorHint="#757575"
+        android:gravity="top|start"
+        android:hint="@string/input_message"
         android:importantForAutofill="no"
-        android:layout_margin="@dimen/common_spacing"/>
+        android:inputType="textMultiLine|textWebEditText"
+        android:linksClickable="true"
+        android:padding="16dp"
+        android:textColorHint="#757575"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/save"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_gravity="bottom|end"
-        android:contentDescription="@string/save"
-        android:text="@string/send"
-        app:iconTint="@color/white"
-        android:textColor="@color/white"
-        app:backgroundTint="@color/teal_700"
-        app:icon="@drawable/ic_ok"/>
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/cancel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_gravity="bottom|start"
-        android:contentDescription="@string/save"
-        app:srcCompat="@drawable/ic_back_svgrepo_com"
-        app:tint="@color/white"
-        app:backgroundTint="@color/teal_700"/>
+        <androidx.constraintlayout.utils.widget.ImageFilterButton
+            android:id="@+id/takePhoto"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:backgroundTint="@color/white"
+            android:contentDescription="@string/photo"
+            android:src="@drawable/ic_baseline_photo_camera_24" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <androidx.constraintlayout.utils.widget.ImageFilterButton
+            android:id="@+id/pickPhoto"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:backgroundTint="@color/white"
+            android:contentDescription="@string/gallery"
+            android:src="@drawable/ic_baseline_image_24" />
+
+    </LinearLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
