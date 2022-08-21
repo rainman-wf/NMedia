@@ -17,13 +17,21 @@ class NewPostViewModel(
     fun onSaveClicked(key: Long, content: String) {
         viewModelScope.launch {
             try {
-                newPostUseCaseContainer.savePostUseCase(key, content, liveData.photo.value?.let { Attachment(it.uri.toString(), Attachment.Type.IMAGE) })
+                newPostUseCaseContainer.savePostUseCase(
+                    key,
+                    content,
+                    liveData.photo.value?.let { Attachment(it.uri, Attachment.Type.IMAGE) }
+                )
             } catch (e: Exception) {
             }
         }
     }
 
-    fun changePhoto(uri: Uri?, file: File?) {
-        liveData.photo.postValue(PhotoModel(uri, file))
+    fun changePhoto(uri: Uri) {
+        liveData.photo.value = PhotoModel(uri.toString())
+    }
+
+    fun clearAttachment() {
+        liveData.photo.value = null
     }
 }

@@ -1,16 +1,12 @@
 package ru.netology.nmedia.presentation.fragments
 
 import android.app.Activity
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.net.toFile
-import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -18,10 +14,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.github.dhaval2404.imagepicker.constant.ImageProvider
 import com.google.android.material.snackbar.Snackbar
@@ -59,9 +51,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                         ).show()
                     }
                     Activity.RESULT_OK -> {
-                        val uri: Uri? = it.data?.data
-                        log(uri)
-                        viewModel.changePhoto(uri, uri?.toFile())
+                        it.data?.data?.let { uri ->  viewModel.changePhoto(uri) }
                     }
                 }
             }
@@ -89,39 +79,49 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         }
 
         viewModel.liveData.photo.observe(viewLifecycleOwner) { photoModel ->
+            log(photoModel == null)
             photoModel?.uri?.let {
+                binding.clearAttachment.isVisible = true
+                binding.attachmentImagePreview.isVisible = true
                 Glide.with(binding.attachmentImagePreview)
                     .load(it)
                     .timeout(10_000)
                     .into(binding.attachmentImagePreview)
+            } ?: run {
+                binding.clearAttachment.isVisible = false
+                binding.attachmentImagePreview.isVisible = false
             }
-
-            binding.attachmentImagePreview.isVisible = photoModel != null
         }
 
+        binding.clearAttachment.setOnClickListener { viewModel.clearAttachment() }
 
-    requireActivity().addMenuProvider(
-    object : MenuProvider {
-        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-            menuInflater.inflate(R.menu.edit_content_menu, menu)
-        }
-
-        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-            return when (menuItem.itemId) {
-                R.id.save -> {
-                    if (binding.msgInputText.text.isEmpty()) {
-                        log(binding.msgInputText.text.toString())
-                        notifyEmptyMessage(binding.root)
-                    } else {
-                        viewModel.onSaveClicked(postId, binding.msgInputText.text.toString())
-                        findNavController().popBackStack()
-                        binding.msgInputText.text.clear()
-                    }
-                    true
+        requireActivity().addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.edit_content_menu, menu)
                 }
-                else -> false
-            }
-        }
-    }, viewLifecycleOwner)
-}
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    return when (menuItem.itemId) {
+                        R.id.save -> {
+                            if (binding.msgInputText.text.isEmpty()) {
+                                log(binding.msgInputText.text.toString())
+                                notifyEmptyMessage(binding.root)
+                            } else {
+                                viewModel.onSaveClicked(
+                                    postId,
+                                    binding.msgInputText.text.toString()
+                                )
+                                viewModel.clearAttachment()
+                                findNavController().popBackStack()
+                                binding.msgInputText.text.clear()
+                            }
+                            true
+                        }
+                        else -> false
+                    }
+                }
+            }, viewLifecycleOwner
+        )
+    }
 }

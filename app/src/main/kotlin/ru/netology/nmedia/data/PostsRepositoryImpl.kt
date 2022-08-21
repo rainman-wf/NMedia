@@ -2,17 +2,13 @@ package ru.netology.nmedia.data
 
 import androidx.core.net.toFile
 import androidx.core.net.toUri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.constants.BASE_URL
 import ru.netology.nmedia.common.exceptions.ApiError
-import ru.netology.nmedia.common.exceptions.AppError
-import ru.netology.nmedia.common.exceptions.NetworkError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
 import ru.netology.nmedia.data.local.dao.PostDao
@@ -51,8 +47,8 @@ class PostsRepositoryImpl(
         if (entity.attachment != null && !entity.attachment.url.contains("http")) {
             log("try upload")
 
-                val imageServerId = upload(UploadMediaDto(entity.attachment.url.toUri().toFile()))?.id
-                imageServerId?.let { postDao.setMediaUrl(key, "${BASE_URL}/$it")}
+            val imageServerId = upload(UploadMediaDto(entity.attachment.url.toUri().toFile()))?.id
+            imageServerId?.let { postDao.setMediaUrl(key, "${BASE_URL}/$it") }
         }
         log("try send")
         try {
@@ -151,27 +147,25 @@ class PostsRepositoryImpl(
         }
     }
 
-    override fun getNewerCount(): Flow<Int> = flow {
-        while (true) {
-
-            delay(10_000)
-            val last = postDao.getAllSentIds().maxOrNull() ?: 0L
-            val response = api.getNewer(last)
-            val body = response.body() ?: throw ApiError(response.code(), response.message())
-            postDao.insert(body.map { it.toEntity(0, true, PostModel.State.OK, false) })
-            emit(body.size)
-
+    override fun getNewerCount() {
+        CoroutineScope(Dispatchers.IO).launch {
+            while (true) {
+                val last = postDao.getAllSentIds().maxOrNull() ?: 0L
+                try {
+                    val response = api.getNewer(last)
+                    val body = response.body() ?: throw ApiError(response.code(), response.message())
+                    postDao.insert(body.map { it.toEntity(0, true, PostModel.State.OK, false) })
+                } catch (e: Exception) {
+                    log(e.message.toString())
+                }
+            }
         }
     }
-        .catch { log(AppError.from(it).message.toString()) }
-        .flowOn(Dispatchers.Default)
 
     private suspend fun upload(uploadMediaDto: UploadMediaDto): Media? {
         val media = MultipartBody.Part.create(uploadMediaDto.file.asRequestBody())
         return try {
             val response = api.uploadMedia(media)
-            log(response.errorBody())
-            log(response.body())
             response.body()
         } catch (e: Exception) {
             log(e.message.toString())

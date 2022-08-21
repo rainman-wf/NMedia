@@ -34,13 +34,40 @@
                 android:padding="16dp"
                 android:textColorHint="#757575" />
 
-            <ImageView
-                android:id="@+id/attachmentImagePreview"
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/attachmentGroup"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scaleType="fitStart"
-                tools:src="@sample/attachment"
-                android:contentDescription="@string/attachment" />
+                android:layout_height="match_parent"
+                app:constraint_referenced_ids="attachmentImagePreview,clearAttachment" />
+
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:id="@+id/coordinatorLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/attachmentImagePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@string/attachment"
+                    tools:src="@sample/attachment" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/clearAttachment"
+                    style="@style/Widget.App.Button.OutlinedButton.IconOnly"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|top"
+                    android:layout_margin="@dimen/common_spacing"
+                    android:backgroundTint="@android:color/transparent"
+                    app:icon="@drawable/ic_baseline_cancel_24"
+                    app:iconSize="48dp"
+                    app:iconTint="@android:color/darker_gray"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.NavigationBarView.ActiveIndicator" />
+
+            </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
         </LinearLayout>
     </ScrollView>
 

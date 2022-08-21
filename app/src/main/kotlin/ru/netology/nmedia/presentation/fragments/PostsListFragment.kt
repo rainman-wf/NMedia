@@ -119,8 +119,6 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
             binding.postList.layoutManager?.scrollToPosition(0)
         }
 
-        viewModel.newCount.observe(viewLifecycleOwner) {}
-
         binding.postList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)

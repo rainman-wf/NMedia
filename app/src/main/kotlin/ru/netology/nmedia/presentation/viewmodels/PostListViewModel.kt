@@ -1,6 +1,5 @@
 package ru.netology.nmedia.presentation.viewmodels
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
@@ -13,10 +12,9 @@ class PostListViewModel(
     private val postListUseCaseContainer: PostListUseCaseContainer
 ) : ViewModel() {
 
-    val newCount: LiveData<Int> = postListUseCaseContainer.getNewerUseCase.invoke()
-
     init {
         modelsLiveData.state.postValue(FeedModelState(loading = true))
+        postListUseCaseContainer.getNewerUseCase.invoke()
         syncData()
     }
 

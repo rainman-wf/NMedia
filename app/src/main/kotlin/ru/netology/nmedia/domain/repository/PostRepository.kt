@@ -1,5 +1,6 @@
 package ru.netology.nmedia.domain.repository
 
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.domain.models.*
 
@@ -15,6 +16,6 @@ interface PostRepository {
     suspend fun update(updatePostDto: UpdatePostDto)
     suspend fun syncData()
     suspend fun setRead(key: Long)
-    fun getNewerCount(): Flow<Int>
+    fun getNewerCount()
 
 }
