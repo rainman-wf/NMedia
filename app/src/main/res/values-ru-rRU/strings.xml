@@ -14,4 +14,6 @@
     <string name="new_posts">Новые посты</string>
     <string name="back">Назад</string>
     <string name="post_editor">Редактор поста</string>
+    <string name="photo">Фото</string>
+    <string name="gallery">Галерея</string>
 </resources>

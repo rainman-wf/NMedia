@@ -50,11 +50,9 @@ class PostsRepositoryImpl(
 
         if (entity.attachment != null && !entity.attachment.url.contains("http")) {
             log("try upload")
-            coroutineScope {
+
                 val imageServerId = upload(UploadMediaDto(entity.attachment.url.toUri().toFile()))?.id
                 imageServerId?.let { postDao.setMediaUrl(key, "${BASE_URL}/$it")}
-            }
-
         }
         log("try send")
         try {
@@ -172,8 +170,11 @@ class PostsRepositoryImpl(
         val media = MultipartBody.Part.create(uploadMediaDto.file.asRequestBody())
         return try {
             val response = api.uploadMedia(media)
+            log(response.errorBody())
+            log(response.body())
             response.body()
         } catch (e: Exception) {
+            log(e.message.toString())
             null
         }
     }

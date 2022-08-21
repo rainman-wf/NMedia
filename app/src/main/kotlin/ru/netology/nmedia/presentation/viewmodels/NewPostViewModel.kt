@@ -11,7 +11,7 @@ import java.io.File
 
 class NewPostViewModel(
     private val newPostUseCaseContainer: NewPostUseCaseContainer,
-    private val liveData: ModelsLiveData
+    val liveData: ModelsLiveData
 ) : ViewModel() {
 
     fun onSaveClicked(key: Long, content: String) {

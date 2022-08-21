@@ -1,6 +1,7 @@
 package ru.netology.nmedia.presentation.fragments
 
 import android.app.Activity
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
@@ -11,10 +12,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toFile
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.github.dhaval2404.imagepicker.constant.ImageProvider
 import com.google.android.material.snackbar.Snackbar
@@ -78,30 +85,43 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                 .crop()
                 .compress(2048)
                 .provider(ImageProvider.CAMERA)
-                .createIntent (pickPhotoLauncher::launch)
+                .createIntent(pickPhotoLauncher::launch)
         }
 
-        requireActivity().addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.edit_content_menu, menu)
+        viewModel.liveData.photo.observe(viewLifecycleOwner) { photoModel ->
+            photoModel?.uri?.let {
+                Glide.with(binding.attachmentImagePreview)
+                    .load(it)
+                    .timeout(10_000)
+                    .into(binding.attachmentImagePreview)
             }
 
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.save -> {
-                        if (binding.msgInputText.text.isEmpty()) {
-                            log(binding.msgInputText.text.toString())
-                            notifyEmptyMessage(binding.root)
-                        } else {
-                            viewModel.onSaveClicked(postId, binding.msgInputText.text.toString())
-                            findNavController().popBackStack()
-                            binding.msgInputText.text.clear()
-                        }
-                        true
+            binding.attachmentImagePreview.isVisible = photoModel != null
+        }
+
+
+    requireActivity().addMenuProvider(
+    object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menuInflater.inflate(R.menu.edit_content_menu, menu)
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            return when (menuItem.itemId) {
+                R.id.save -> {
+                    if (binding.msgInputText.text.isEmpty()) {
+                        log(binding.msgInputText.text.toString())
+                        notifyEmptyMessage(binding.root)
+                    } else {
+                        viewModel.onSaveClicked(postId, binding.msgInputText.text.toString())
+                        findNavController().popBackStack()
+                        binding.msgInputText.text.clear()
                     }
-                    else -> false
+                    true
                 }
+                else -> false
             }
-        }, viewLifecycleOwner)
-    }
+        }
+    }, viewLifecycleOwner)
+}
 }

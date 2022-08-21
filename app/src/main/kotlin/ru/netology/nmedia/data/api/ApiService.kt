@@ -33,7 +33,8 @@ interface ApiService {
     suspend fun getNewer(@Path("id") id: Long): Response<List<Post>>
 
     @Multipart
-    @POST("$MAIN_PATH/media")
+    @Headers("Content-Type: multipart/form-data")
+    @POST("/api/media")
     suspend fun uploadMedia(@Part media: MultipartBody.Part): Response<Media>
 
 }

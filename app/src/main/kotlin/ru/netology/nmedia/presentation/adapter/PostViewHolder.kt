@@ -39,8 +39,10 @@ class PostViewHolder(
             error.isVisible = postModel.state == PostModel.State.ERROR
             sending.isVisible = postModel.state == PostModel.State.LOADING
             trySending.isEnabled = postModel.state == PostModel.State.ERROR
-            cancel.isEnabled = postModel.state == PostModel.State.LOADING || postModel.state == PostModel.State.ERROR
-            sendingBar.isVisible = postModel.state == PostModel.State.LOADING || postModel.state == PostModel.State.ERROR
+            cancel.isEnabled =
+                postModel.state == PostModel.State.LOADING || postModel.state == PostModel.State.ERROR
+            sendingBar.isVisible =
+                postModel.state == PostModel.State.LOADING || postModel.state == PostModel.State.ERROR
 
             menu.isEnabled = post.author == AUTHOR
 
@@ -48,28 +50,6 @@ class PostViewHolder(
                 Glide.with(attachmentImage)
                     .load(post.attachment.url)
                     .timeout(10_000)
-                    .listener(object : RequestListener<Drawable> {
-                        override fun onLoadFailed(
-                            e: GlideException?,
-                            model: Any?,
-                            target: Target<Drawable>?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            return false
-                        }
-
-                        override fun onResourceReady(
-                            resource: Drawable?,
-                            model: Any?,
-                            target: Target<Drawable>?,
-                            dataSource: DataSource?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            attachmentImage.isVisible = true
-                            return false
-                        }
-
-                    })
                     .into(attachmentImage)
 
             } ?: run {
