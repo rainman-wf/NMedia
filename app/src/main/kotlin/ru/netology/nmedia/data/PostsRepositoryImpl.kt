@@ -52,7 +52,7 @@ class PostsRepositoryImpl(
                 withContext(Dispatchers.IO) {
                     log("try upload image")
                     upload(UploadMediaDto(entity.attachment.url.toUri().toFile()))?.id
-                }?.let { postDao.setMediaUrl(key, "${BASE_URL}/$it") }
+                }?.let { postDao.setMediaUrl(key, "${BASE_URL}/media/$it") }
             }
         }
 
@@ -154,6 +154,7 @@ class PostsRepositoryImpl(
     override fun getNewerCount() {
         CoroutineScope(Dispatchers.IO).launch {
             while (true) {
+                delay(10000)
                 val last = postDao.getAllSentIds().maxOrNull() ?: 0L
                 try {
                     val response = api.getNewer(last)
@@ -168,7 +169,11 @@ class PostsRepositoryImpl(
     }
 
     private suspend fun upload(uploadMediaDto: UploadMediaDto): Media? {
-        val media = MultipartBody.Part.create(uploadMediaDto.file.asRequestBody())
+        val media = MultipartBody.Part.createFormData(
+            "file",
+            uploadMediaDto.file.name,
+            uploadMediaDto.file.asRequestBody()
+        )
         return try {
             val response = api.uploadMedia(media)
             if (response.isSuccessful) response.body()

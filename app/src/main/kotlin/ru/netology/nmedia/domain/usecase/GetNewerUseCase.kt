@@ -1,6 +1,5 @@
 package ru.netology.nmedia.domain.usecase
 
-import kotlinx.coroutines.Job
 import ru.netology.nmedia.domain.repository.PostRepository
 
 class GetNewerUseCase(private val repository: PostRepository) {

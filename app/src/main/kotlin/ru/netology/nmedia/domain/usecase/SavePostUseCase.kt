@@ -1,9 +1,7 @@
 package ru.netology.nmedia.domain.usecase
 
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.Attachment
 import ru.netology.nmedia.domain.models.NewPostDto
-import ru.netology.nmedia.domain.models.PostModel
 import ru.netology.nmedia.domain.models.UpdatePostDto
 import ru.netology.nmedia.domain.repository.PostRepository
 

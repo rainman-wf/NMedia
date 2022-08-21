@@ -33,9 +33,11 @@ interface ApiService {
     suspend fun getNewer(@Path("id") id: Long): Response<List<Post>>
 
     @Multipart
-    @Headers("Content-Type: multipart/form-data")
     @POST("/api/media")
     suspend fun uploadMedia(@Part media: MultipartBody.Part): Response<Media>
+
+    @POST(MAIN_PATH)
+    suspend fun save(@Header("Authorization") token: String, @Body post: PostRequestBody): Response<Post>
 
 }
 

@@ -2,6 +2,7 @@ package ru.netology.nmedia.application
 
 import android.app.Application
 import ru.netology.nmedia.BuildConfig
+import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.di.AppContainer
 import timber.log.Timber
 
@@ -12,6 +13,7 @@ class App: Application() {
     override fun onCreate() {
         super.onCreate()
         createContainer()
+        AppAuth.initApp(this)
         if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
     }
 

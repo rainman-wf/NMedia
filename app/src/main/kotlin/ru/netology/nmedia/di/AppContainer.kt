@@ -7,6 +7,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import ru.netology.nmedia.common.constants.BASE_URL
 import ru.netology.nmedia.data.PostsRepositoryImpl
 import ru.netology.nmedia.data.api.ApiServiceHolder
+import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.data.local.AppDb
 import ru.netology.nmedia.domain.usecase.*
 import ru.netology.nmedia.domain.usecase.container.NewPostUseCaseContainer
@@ -27,6 +28,15 @@ class AppContainer(context: Context) {
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .addInterceptor(logging)
+        .addInterceptor { chain ->
+            AppAuth.getInstance().authStateFlow.value.token?.let { token ->
+                val newRequest = chain.request().newBuilder()
+                    .addHeader("Authorisation", token)
+                    .build()
+                return@addInterceptor chain.proceed(newRequest)
+            }
+            chain.proceed(chain.request())
+        }
         .build()
 
     private val apiServiceHolder = ApiServiceHolder(BASE_URL, okHttpClient)
