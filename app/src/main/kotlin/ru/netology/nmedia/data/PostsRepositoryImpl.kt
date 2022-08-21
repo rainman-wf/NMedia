@@ -1,9 +1,12 @@
 package ru.netology.nmedia.data
 
+
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.common.constants.AUTHOR
@@ -15,9 +18,9 @@ import ru.netology.nmedia.data.local.dao.PostDao
 import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.data.mapper.toEntity
 import ru.netology.nmedia.data.mapper.toModel
-import ru.netology.nmedia.domain.repository.PostRepository
 import ru.netology.nmedia.data.mapper.toRequestBody
 import ru.netology.nmedia.domain.models.*
+import ru.netology.nmedia.domain.repository.PostRepository
 
 class PostsRepositoryImpl(
     private val api: ApiService,
@@ -45,21 +48,22 @@ class PostsRepositoryImpl(
         if (entity.id == 0L) postDao.setState(key, PostModel.State.LOADING)
 
         if (entity.attachment != null && !entity.attachment.url.contains("http")) {
-            log("try upload")
-
-            val imageServerId = upload(UploadMediaDto(entity.attachment.url.toUri().toFile()))?.id
-            imageServerId?.let { postDao.setMediaUrl(key, "${BASE_URL}/$it") }
+            CoroutineScope(Dispatchers.IO).launch {
+                withContext(Dispatchers.IO) {
+                    log("try upload image")
+                    upload(UploadMediaDto(entity.attachment.url.toUri().toFile()))?.id
+                }?.let { postDao.setMediaUrl(key, "${BASE_URL}/$it") }
+            }
         }
-        log("try send")
+
         try {
+            log("try send post")
             val post = api.send(entity.toRequestBody()).body()!!
-            log("post done")
             postDao.setServerId(key, post.id)
             postDao.setSyncedById(post.id)
             if (entity.id == 0L) postDao.setServerDateTime(key, post.published)
             postDao.setState(key, PostModel.State.OK)
         } catch (e: Exception) {
-            log(e.message.toString())
             postDao.setState(key, PostModel.State.ERROR)
         }
     }
@@ -153,7 +157,8 @@ class PostsRepositoryImpl(
                 val last = postDao.getAllSentIds().maxOrNull() ?: 0L
                 try {
                     val response = api.getNewer(last)
-                    val body = response.body() ?: throw ApiError(response.code(), response.message())
+                    val body =
+                        response.body() ?: throw ApiError(response.code(), response.message())
                     postDao.insert(body.map { it.toEntity(0, true, PostModel.State.OK, false) })
                 } catch (e: Exception) {
                     log(e.message.toString())
@@ -166,7 +171,8 @@ class PostsRepositoryImpl(
         val media = MultipartBody.Part.create(uploadMediaDto.file.asRequestBody())
         return try {
             val response = api.uploadMedia(media)
-            response.body()
+            if (response.isSuccessful) response.body()
+            else null
         } catch (e: Exception) {
             log(e.message.toString())
             null
