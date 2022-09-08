@@ -18,6 +18,6 @@ class ApiError(val status: Int, code: String) : AppError(code)
 object NetworkError: AppError("network error")
 object DbError: AppError("db error")
 object UserAlreadyExists: AppError ("user already exist")
-object InvalidSigninData: AppError ("invalid login or password")
+object InvalidSignInData: AppError ("invalid login or password")
 object UnexpectedError: AppError("unexpected error")
 

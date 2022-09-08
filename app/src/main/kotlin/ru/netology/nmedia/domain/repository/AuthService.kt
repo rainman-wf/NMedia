@@ -7,9 +7,9 @@ interface AuthService {
     suspend fun login(login: String, password: String)
 
     suspend fun simpleRegister(
-        username: String,
         login: String,
-        password: String
+        password: String,
+        username: String
     )
 
     suspend fun register(

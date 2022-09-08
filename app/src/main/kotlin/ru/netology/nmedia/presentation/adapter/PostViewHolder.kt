@@ -11,6 +11,7 @@ import ru.netology.nmedia.databinding.PostCardBinding
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
 import ru.netology.nmedia.common.utils.log
+import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.domain.models.PostModel
 
 class PostViewHolder(
@@ -39,7 +40,7 @@ class PostViewHolder(
             sendingBar.isVisible =
                 postModel.state == PostModel.State.LOADING || postModel.state == PostModel.State.ERROR
 
-            menu.isEnabled = post.author.name == AUTHOR
+            menu.isVisible = post.author.id == AppAuth.getInstance().authStateFlow.value.id
 
             post.attachment?.let {
                 log("attachment not null")

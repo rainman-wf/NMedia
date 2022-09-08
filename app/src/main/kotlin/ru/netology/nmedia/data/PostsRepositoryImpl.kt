@@ -149,7 +149,7 @@ class PostsRepositoryImpl(
     override fun getNewerCount() {
         CoroutineScope(Dispatchers.IO).launch {
             while (true) {
-                delay(10000)
+                delay(20000)
                 val last = postDao.getAllSentIds().maxOrNull() ?: 0L
                 try {
                     val response = api.getNewer(last)

@@ -12,7 +12,6 @@ import ru.netology.nmedia.domain.models.Post
 
 interface ApiService {
 
-    @Headers("Content-Type: application/json")
     @POST("posts")
     suspend fun send(@Body postRequestBody: PostRequestBody) : Response<PostResponseBody>
 

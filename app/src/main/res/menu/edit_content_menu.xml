@@ -4,11 +4,10 @@
 
 
     <item
-        android:id="@+id/save"
-        app:showAsAction="always"
+        android:id="@+id/register"
         android:icon="@drawable/ic_baseline_check_24"
-        android:title="@string/back">
-    </item>
+        android:title="@string/save"
+        app:showAsAction="always" />
 
 
 </menu>

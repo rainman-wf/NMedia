@@ -16,4 +16,11 @@
     <string name="post_editor">Редактор поста</string>
     <string name="photo">Фото</string>
     <string name="gallery">Галерея</string>
+    <string name="user_name">Имя пользователя</string>
+    <string name="password">Пароль</string>
+    <string name="sign_in">Вход</string>
+    <string name="sign_up">Регистрация</string>
+    <string name="signout">Выйти</string>
+    <string name="name">Имя</string>
+    <string name="login">Логин</string>
 </resources>

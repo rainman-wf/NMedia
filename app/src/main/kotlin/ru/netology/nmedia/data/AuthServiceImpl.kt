@@ -44,7 +44,7 @@ class AuthServiceImpl(
         appAuth.setAuth(responseBody.id, responseBody.token)
     }
 
-    override suspend fun simpleRegister(username: String, login: String, password: String) {
+    override suspend fun simpleRegister(login: String, password: String, username: String) {
         val response = api.simpleRegister(login, password, username)
         val responseBody =
             if (response.isSuccessful) response.body() ?: error("body is null")

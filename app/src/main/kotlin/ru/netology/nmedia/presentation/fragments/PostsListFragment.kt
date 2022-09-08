@@ -1,6 +1,7 @@
 package ru.netology.nmedia.presentation.fragments
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
@@ -11,11 +12,13 @@ import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.R
+import ru.netology.nmedia.common.constants.AuthFragmentArgsConstants
 import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostAdapter
@@ -44,15 +47,25 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                     menu.clear()
                     menuInflater.inflate(R.menu.manu_main, menu)
                     menu.let {
-                        it.setGroupVisible(R.id.unauthenticated, !viewModel.modelsLiveData.authenticated)
-                        it.setGroupVisible(R.id.authenticated, viewModel.modelsLiveData.authenticated)
+                        it.setGroupVisible(
+                            R.id.unauthenticated,
+                            !viewModel.modelsLiveData.authenticated
+                        )
+                        it.setGroupVisible(
+                            R.id.authenticated,
+                            viewModel.modelsLiveData.authenticated
+                        )
                     }
                 }
 
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                     return when (menuItem.itemId) {
                         R.id.signIn -> {
-                            navController.navigate(PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment("signIn"))
+                            navController.navigate(
+                                PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment(
+                                    AuthFragmentArgsConstants.SIGN_IN.name
+                                )
+                            )
                             true
                         }
                         R.id.signOut -> {
@@ -60,19 +73,24 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                             true
                         }
                         R.id.signUp -> {
-                            navController.navigate(PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment("signUp"))
+                            navController.navigate(
+                                PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment(
+                                    AuthFragmentArgsConstants.SIGN_UP.name
+                                )
+                            )
                             true
                         }
                         else -> false
                     }
                 }
-            },viewLifecycleOwner)
+            }, viewLifecycleOwner)
         }
 
         val postAdapter = PostAdapter(
             object : OnPostClickListener {
                 override fun onLike(postModel: PostModel) {
-                    viewModel.onLikeClicked(postModel.key)
+                    if (viewModel.modelsLiveData.authenticated) viewModel.onLikeClicked(postModel.key)
+                    else showAuthAlert(navController)
                 }
 
                 override fun onShare(postModel: PostModel) {
@@ -123,9 +141,11 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
         }
 
         binding.addPost.setOnClickListener {
-            navController.navigate(
-                PostsListFragmentDirections.actionPostsListFragmentToNewPostFragment()
-            )
+            if (viewModel.modelsLiveData.authenticated)
+                navController.navigate(
+                    PostsListFragmentDirections.actionPostsListFragmentToNewPostFragment()
+                )
+            else showAuthAlert(navController)
         }
 
         viewModel.modelsLiveData.data.observe(viewLifecycleOwner) { feedModel ->
@@ -158,12 +178,37 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         viewModel.modelsLiveData.state.observe(viewLifecycleOwner) {
             binding.postList.isVisible = !it.loading
-            binding.loadingGroup.isVisible = it.loading
+            binding.loadingText.isVisible = it.loading
+            binding.loadingProgress.isVisible = it.loading
             binding.updateList.isRefreshing = it.refreshing
         }
 
         binding.updateList.setOnRefreshListener {
             viewModel.onRefreshSwiped()
         }
+    }
+
+    fun showAuthAlert(navController: NavController) {
+        AlertDialog.Builder(requireActivity())
+            .setTitle("You are not authorized")
+            .setMessage("Select \"Sign in\" if you have an account or \"Sign up\" to register a new one")
+            .setNegativeButton("Sign in") { _, _ ->
+                navController.navigate(
+                    PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment(
+                        AuthFragmentArgsConstants.SIGN_IN.name
+                    )
+                )
+            }
+            .setPositiveButton("Sign up") { _, _ ->
+                navController.navigate(
+                    PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment(
+                        AuthFragmentArgsConstants.SIGN_UP.name
+                    )
+                )
+            }
+            .setNeutralButton("Cancel") { dialog, _ ->
+                dialog.cancel()
+            }
+            .create().show()
     }
 }

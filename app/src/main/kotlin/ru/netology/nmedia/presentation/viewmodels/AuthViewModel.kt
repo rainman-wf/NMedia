@@ -21,7 +21,7 @@ import ru.netology.nmedia.domain.models.UploadMediaDto
 import ru.netology.nmedia.domain.repository.AuthService
 
 class AuthViewModel(
-    private val liveData: ModelsLiveData,
+    val liveData: ModelsLiveData,
     private val authService: AuthService,
 ) : ViewModel() {
 
@@ -40,8 +40,8 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
                 liveData.photo.value?.uri?.toUri()?.toFile()?.let {
-                    authService.register(username, login, password, UploadMediaDto(it))
-                } ?: authService.simpleRegister(username, login, password)
+                    authService.register(login, password, username, UploadMediaDto(it))
+                } ?: authService.simpleRegister(login, password, username)
                 okEvent.postValue(Unit)
             } catch (e: ApiError) {
                 when(e.status)  {

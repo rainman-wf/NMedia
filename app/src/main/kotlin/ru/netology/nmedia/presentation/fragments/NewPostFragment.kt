@@ -104,7 +104,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                     return when (menuItem.itemId) {
-                        R.id.save -> {
+                        R.id.register -> {
                             if (binding.msgInputText.text.isEmpty()) {
                                 log(binding.msgInputText.text.toString())
                                 notifyEmptyMessage(binding.root)
