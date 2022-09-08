@@ -1,8 +1,10 @@
 package ru.netology.nmedia.services.dto
 
+import ru.netology.nmedia.domain.models.Author
+
 data class NewPostInfo(
     val id: Long,
-    val author: String,
+    val author: Author,
     val authorAvatar: String? = null,
     val published: Long,
     val content: String,

@@ -2,8 +2,7 @@ package ru.netology.nmedia.domain.models
 
 data class Post(
     val id: Long,
-    val author: String,
-    val authorAvatar: String? = null,
+    val author: Author,
     val content: String,
     val published: Long,
     val likedByMe: Boolean = false,

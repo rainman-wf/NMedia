@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_postsListFragment_to_postDetailsFragment"
             app:destination="@id/postDetailsFragment" />
+        <action
+            android:id="@+id/action_postsListFragment_to_signUpFragment"
+            app:destination="@id/signUpFragment" />
     </fragment>
     <fragment
         android:id="@+id/newPostFragment"
@@ -43,5 +46,14 @@
             android:name="postId"
             app:argType="long"
             android:defaultValue="0L" />
+    </fragment>
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="ru.netology.nmedia.presentation.fragments.AuthFragment"
+        android:label="fragment_sign_up"
+        tools:layout="@layout/fragment_auth" >
+        <argument
+            android:name="reason"
+            app:argType="string" />
     </fragment>
 </navigation>

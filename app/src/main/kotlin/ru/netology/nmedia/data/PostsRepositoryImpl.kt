@@ -1,6 +1,5 @@
 package ru.netology.nmedia.data
 
-
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import kotlinx.coroutines.*
@@ -10,7 +9,6 @@ import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.common.constants.AUTHOR
-import ru.netology.nmedia.common.constants.BASE_URL
 import ru.netology.nmedia.common.exceptions.ApiError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
@@ -18,6 +16,7 @@ import ru.netology.nmedia.data.local.dao.PostDao
 import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.data.mapper.toEntity
 import ru.netology.nmedia.data.mapper.toModel
+import ru.netology.nmedia.data.mapper.toPost
 import ru.netology.nmedia.data.mapper.toRequestBody
 import ru.netology.nmedia.domain.models.*
 import ru.netology.nmedia.domain.repository.PostRepository
@@ -47,18 +46,13 @@ class PostsRepositoryImpl(
         val entity = postDao.getByKey(key)
         if (entity.id == 0L) postDao.setState(key, PostModel.State.LOADING)
 
-        if (entity.attachment != null && !entity.attachment.url.contains("http")) {
-            CoroutineScope(Dispatchers.IO).launch {
-                withContext(Dispatchers.IO) {
-                    log("try upload image")
-                    upload(UploadMediaDto(entity.attachment.url.toUri().toFile()))?.id
-                }?.let { postDao.setMediaUrl(key, "${BASE_URL}/media/$it") }
-            }
-        }
+        val mediaId = if (entity.attachment != null && !entity.attachment.url.contains("http"))
+            upload(UploadMediaDto(entity.attachment.url.toUri().toFile()))?.id else null
 
         try {
-            log("try send post")
-            val post = api.send(entity.toRequestBody()).body()!!
+            val post = api.send(entity.toRequestBody().copy(
+                attachment = mediaId?.let { Attachment(url = it, Attachment.Type.IMAGE) }
+            )).body()!!
             postDao.setServerId(key, post.id)
             postDao.setSyncedById(post.id)
             if (entity.id == 0L) postDao.setServerDateTime(key, post.published)
@@ -79,7 +73,7 @@ class PostsRepositoryImpl(
         if (!response.isSuccessful) error("Response code: ${response.code()}")
         val post = response.body() ?: error("Body is null")
         postDao.setSyncedById(id)
-        return post
+        return post.toPost()
     }
 
     private suspend fun sendUnlike(id: Long): Post {
@@ -87,7 +81,7 @@ class PostsRepositoryImpl(
         if (!response.isSuccessful) error("Response code: ${response.code()}")
         val post = response.body() ?: error("Body is null")
         postDao.setSyncedById(id)
-        return post
+        return post.toPost()
     }
 
     override suspend fun remove(key: Long) {
@@ -108,7 +102,8 @@ class PostsRepositoryImpl(
     private suspend fun getAllRemote(): List<Post> {
         val response = api.getAll()
         if (!response.isSuccessful) error("Response code: ${response.code()}")
-        return response.body() ?: error("Body is null")
+        val list = response.body() ?: error("Body is null")
+        return list.map { it.toPost() }
     }
 
     override suspend fun syncData() {
@@ -142,7 +137,7 @@ class PostsRepositoryImpl(
 
     private suspend fun Post.sync(entity: PostEntity) {
         if (!entity.synced) {
-            if (author == AUTHOR && content != content) sendPost(entity.key)
+            if (content != content) sendPost(entity.key)
             if (likedByMe) sendLike(id) else sendUnlike(id)
         } else {
             if (!sameAsEntity(entity)) {
@@ -160,9 +155,10 @@ class PostsRepositoryImpl(
                     val response = api.getNewer(last)
                     val body =
                         response.body() ?: throw ApiError(response.code(), response.message())
-                    postDao.insert(body.map { it.toEntity(0, true, PostModel.State.OK, false) })
+                    postDao.insert(body.map { it.toEntity(0, true, PostModel.State.OK, false) }
+                        .reversed())
                 } catch (e: Exception) {
-                    log(e.message.toString())
+                    e.printStackTrace()
                 }
             }
         }

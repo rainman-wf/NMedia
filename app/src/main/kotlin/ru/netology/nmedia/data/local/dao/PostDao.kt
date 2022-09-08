@@ -72,8 +72,8 @@ interface PostDao {
     @Query(
         """
         UPDATE posts SET
-        likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
-        likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END,
+        likes = likes + CASE WHEN liked_by_me THEN -1 ELSE 1 END,
+        liked_by_me = CASE WHEN liked_by_me THEN 0 ELSE 1 END,
         synced = 0
         WHERE `key` = :key
         """
@@ -89,8 +89,8 @@ interface PostDao {
     @Query(
         """
         UPDATE posts SET
-        likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
-        likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END,
+        likes = likes + CASE WHEN liked_by_me THEN -1 ELSE 1 END,
+        liked_by_me = CASE WHEN liked_by_me THEN 0 ELSE 1 END,
         synced = 0
         WHERE id = :id
         """

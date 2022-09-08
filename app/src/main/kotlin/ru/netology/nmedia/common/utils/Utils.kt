@@ -31,8 +31,3 @@ fun notifyEmptyMessage(view: View) {
 }
 
 fun Any.log(msg: Any?) = Timber.d(this.javaClass.simpleName + " " + msg.toString())
-
-fun parseUrl(text: String): String? {
-    val regexp = "(http|https)://[\\w]*\\.\\S*".toRegex()
-    return regexp.find(text)?.groups?.first()?.value
-}

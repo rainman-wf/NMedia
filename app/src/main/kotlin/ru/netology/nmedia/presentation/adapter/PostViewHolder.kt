@@ -1,21 +1,16 @@
 package ru.netology.nmedia.presentation.adapter
 
-import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.constants.AUTHOR
-import ru.netology.nmedia.common.constants.BASE_URL
 import ru.netology.nmedia.databinding.PostCardBinding
 import ru.netology.nmedia.common.utils.asUnit
 import ru.netology.nmedia.common.utils.formatDate
+import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.PostModel
 
 class PostViewHolder(
@@ -27,7 +22,7 @@ class PostViewHolder(
         val post = postModel.post
 
         binding.apply {
-            author.text = post.author
+            author.text = post.author.name
             content.text = post.content
             published.text = formatDate(post.published)
             likeCount.text = post.likes.asUnit()
@@ -44,11 +39,12 @@ class PostViewHolder(
             sendingBar.isVisible =
                 postModel.state == PostModel.State.LOADING || postModel.state == PostModel.State.ERROR
 
-            menu.isEnabled = post.author == AUTHOR
+            menu.isEnabled = post.author.name == AUTHOR
 
             post.attachment?.let {
+                log("attachment not null")
                 Glide.with(attachmentImage)
-                    .load(post.attachment.url)
+                    .load(if (!it.url.contains("file://")) "http://10.0.2.2:9999/media/${it.url}" else it.url)
                     .timeout(10_000)
                     .into(attachmentImage)
 
@@ -56,9 +52,9 @@ class PostViewHolder(
                 attachmentImage.isVisible = false
             }
 
-            if (!post.authorAvatar.isNullOrBlank())
+            if (!post.author.avatar.isNullOrBlank())
                 Glide.with(avatar)
-                    .load("$BASE_URL/avatars/${post.authorAvatar}")
+                    .load("http://10.0.2.2:9999/avatars/${post.author.avatar}")
                     .timeout(10_000)
                     .placeholder(R.mipmap.ic_avatar)
                     .circleCrop()

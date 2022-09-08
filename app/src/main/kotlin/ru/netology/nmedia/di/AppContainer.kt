@@ -1,14 +1,18 @@
 package ru.netology.nmedia.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import ru.netology.nmedia.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import ru.netology.nmedia.common.constants.APP_SETTINGS
 import ru.netology.nmedia.common.constants.BASE_URL
+import ru.netology.nmedia.data.AuthServiceImpl
 import ru.netology.nmedia.data.PostsRepositoryImpl
 import ru.netology.nmedia.data.api.ApiServiceHolder
 import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.data.local.AppDb
+import ru.netology.nmedia.domain.repository.AuthService
 import ru.netology.nmedia.domain.usecase.*
 import ru.netology.nmedia.domain.usecase.container.NewPostUseCaseContainer
 import ru.netology.nmedia.domain.usecase.container.PostDetailsUseCaseContainer
@@ -43,6 +47,8 @@ class AppContainer(context: Context) {
 
 
     private val postRepository = PostsRepositoryImpl(apiServiceHolder.api, postDao)
+
+    private val authService = AuthServiceImpl(context.getSharedPreferences(APP_SETTINGS, Context.MODE_PRIVATE), apiServiceHolder.api)
 
     private val getAllUseCase = GetAllUseCase(postRepository)
     private val savePostUseCase = SavePostUseCase(postRepository)
@@ -82,6 +88,7 @@ class AppContainer(context: Context) {
     val detailsViewModelFactory =
         DetailsViewModelFactory(postsModelsLiveData, postDetailsUseCaseContainer)
     val postListViewModelFactory = PostListViewModelFactory(postsModelsLiveData, postListUseCaseContainer)
+    val authViewModelFactory = AuthViewModelFactory(postsModelsLiveData, authService)
 }
 
 

@@ -8,7 +8,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.core.view.MenuProvider
-import androidx.core.view.get
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -17,7 +16,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.R
-import ru.netology.nmedia.common.utils.log
+import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostAdapter
 import ru.netology.nmedia.di.AppContainerHolder
@@ -31,6 +30,7 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
         (requireActivity() as AppContainerHolder).appContainer.postListViewModelFactory
     }
 
+
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -38,16 +38,36 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
         val binding = FragmentPostsListBinding.bind(view)
         val navController = findNavController()
 
+        viewModel.modelsLiveData.authData.observe(viewLifecycleOwner) {
+            requireActivity().addMenuProvider(object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menu.clear()
+                    menuInflater.inflate(R.menu.manu_main, menu)
+                    menu.let {
+                        it.setGroupVisible(R.id.unauthenticated, !viewModel.modelsLiveData.authenticated)
+                        it.setGroupVisible(R.id.authenticated, viewModel.modelsLiveData.authenticated)
+                    }
+                }
 
-        requireActivity().addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.clear()
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return false
-            }
-        },viewLifecycleOwner)
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    return when (menuItem.itemId) {
+                        R.id.signIn -> {
+                            navController.navigate(PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment("signIn"))
+                            true
+                        }
+                        R.id.signOut -> {
+                            AppAuth.getInstance().removeAuth()
+                            true
+                        }
+                        R.id.signUp -> {
+                            navController.navigate(PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment("signUp"))
+                            true
+                        }
+                        else -> false
+                    }
+                }
+            },viewLifecycleOwner)
+        }
 
         val postAdapter = PostAdapter(
             object : OnPostClickListener {

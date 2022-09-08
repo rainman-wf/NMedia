@@ -9,6 +9,9 @@ import ru.netology.nmedia.domain.repository.PostRepository
 
 class GetAllUseCase(private val repository: PostRepository) {
     operator fun invoke(): LiveData<FeedModel> {
-        return repository.posts.map { list -> FeedModel(list.associateBy { it.key }.toMutableMap()) }.asLiveData(Dispatchers.Default)
+        return repository.posts
+            .map { list -> FeedModel(list.associateBy { it.key }
+                .toMutableMap()) }
+            .asLiveData(Dispatchers.Default)
     }
 }

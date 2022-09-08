@@ -9,7 +9,7 @@ import ru.netology.nmedia.domain.usecase.container.PostListUseCaseContainer
 
 class PostListViewModel(
     val modelsLiveData: ModelsLiveData,
-    private val postListUseCaseContainer: PostListUseCaseContainer
+    private val postListUseCaseContainer: PostListUseCaseContainer,
 ) : ViewModel() {
 
     init {

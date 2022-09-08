@@ -12,8 +12,8 @@ class App: Application() {
 
     override fun onCreate() {
         super.onCreate()
-        createContainer()
         AppAuth.initApp(this)
+        createContainer()
         if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
     }
 
