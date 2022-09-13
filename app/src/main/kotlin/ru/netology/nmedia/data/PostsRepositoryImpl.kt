@@ -53,6 +53,8 @@ class PostsRepositoryImpl(
             val post = api.send(entity.toRequestBody().copy(
                 attachment = mediaId?.let { Attachment(url = it, Attachment.Type.IMAGE) }
             )).body()!!
+            postDao.setAvatar(key, post.authorAvatar)
+            postDao.setAuthorName(key, post.author)
             postDao.setServerId(key, post.id)
             postDao.setSyncedById(post.id)
             if (entity.id == 0L) postDao.setServerDateTime(key, post.published)

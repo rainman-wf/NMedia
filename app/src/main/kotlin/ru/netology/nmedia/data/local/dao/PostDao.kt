@@ -48,6 +48,12 @@ interface PostDao {
 
     // update
 
+    @Query("UPDATE posts SET author_avatar = :url WHERE `key` = :key")
+    suspend fun setAvatar(key: Long, url: String)
+
+    @Query("UPDATE posts SET author_name = :name WHERE `key` = :key")
+    suspend fun setAuthorName(key: Long, name: String)
+
     @Query("UPDATE posts SET attachment_url = :url WHERE `key` = :key")
     suspend fun setMediaUrl(key: Long, url: String)
 
