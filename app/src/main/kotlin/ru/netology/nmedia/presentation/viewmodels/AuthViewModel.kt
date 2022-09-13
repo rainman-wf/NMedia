@@ -43,6 +43,7 @@ class AuthViewModel(
                     authService.register(login, password, username, UploadMediaDto(it))
                 } ?: authService.simpleRegister(login, password, username)
                 okEvent.postValue(Unit)
+                clearPhoto()
             } catch (e: ApiError) {
                 when(e.status)  {
                     403 -> errorEvent.postValue("User already exists")

@@ -37,7 +37,7 @@ class AppContainer(context: Context) {
             AppAuth.getInstance().authStateFlow.value.token?.let { token ->
                 log("token : $token")
                 val newRequest = chain.request().newBuilder()
-                    .addHeader("Authorisation", token)
+                    .addHeader("Authorization", token)
                     .build()
                 return@addInterceptor chain.proceed(newRequest)
             }
