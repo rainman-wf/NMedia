@@ -45,10 +45,10 @@ class FCMService : FirebaseMessagingService() {
         log(recipientId == null)
 
         when {
+            recipientId == null -> handleNotify(notify.content) // не могу понять почему...
             recipientId != 0L && recipientId == myId -> handleNotify(notify.content)
             recipientId == 0L && recipientId != myId -> authManager.sendPushToken()
             recipientId != 0L && recipientId != myId -> authManager.sendPushToken()
-            recipientId == null -> handleNotify(notify.content)
         }
     }
 
