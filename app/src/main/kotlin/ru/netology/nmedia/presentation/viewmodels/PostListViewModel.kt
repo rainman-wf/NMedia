@@ -2,25 +2,33 @@ package ru.netology.nmedia.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.domain.models.FeedModelState
-import ru.netology.nmedia.domain.usecase.container.PostListUseCaseContainer
+import ru.netology.nmedia.domain.usecase.*
+import javax.inject.Inject
 
-class PostListViewModel(
+@HiltViewModel
+class PostListViewModel @Inject constructor(
     val modelsLiveData: ModelsLiveData,
-    private val postListUseCaseContainer: PostListUseCaseContainer,
+    val trySendPostUseCase: TrySendPostUseCase,
+    val likePostUseCase: LikePostUseCase,
+    val removePostUseCase: RemovePostUseCase,
+    val syncDataUseCase: SyncDataUseCase,
+    getNewerUseCase: GetNewerUseCase,
+    val setReadUseCase: SetReadUseCase
 ) : ViewModel() {
 
     init {
         modelsLiveData.state.postValue(FeedModelState(loading = true))
-        postListUseCaseContainer.getNewerUseCase.invoke()
+        getNewerUseCase.invoke()
         syncData()
     }
 
     fun setRead(key: Long) {
         viewModelScope.launch {
-            postListUseCaseContainer.setReadUseCase(key)
+            setReadUseCase(key)
         }
     }
 
@@ -35,7 +43,7 @@ class PostListViewModel(
     private fun syncData() {
         viewModelScope.launch {
             try {
-                postListUseCaseContainer.syncDataUseCase()
+                syncDataUseCase()
                 modelsLiveData.state.value = FeedModelState()
             } catch (e: Exception) {
                 modelsLiveData.state.value = FeedModelState(error = true)
@@ -46,7 +54,7 @@ class PostListViewModel(
     fun onTryClicked(key: Long) {
         viewModelScope.launch {
             try {
-                postListUseCaseContainer.trySendPostUseCase(key)
+                trySendPostUseCase(key)
             } catch (e: Exception) {
                 log(e.message.toString())
             }
@@ -56,7 +64,7 @@ class PostListViewModel(
     fun onLikeClicked(key: Long) {
         viewModelScope.launch {
             try {
-                postListUseCaseContainer.likePostUseCase(key)
+                likePostUseCase(key)
             } catch (e: Exception) {
                 log(e.message.toString())
             }
@@ -66,7 +74,7 @@ class PostListViewModel(
     fun onRemoveClicked(key: Long) {
         viewModelScope.launch {
             try {
-                postListUseCaseContainer.removePostUseCase(key)
+                removePostUseCase(key)
             } catch (e: Exception) {
                 log(e.message.toString())
             }

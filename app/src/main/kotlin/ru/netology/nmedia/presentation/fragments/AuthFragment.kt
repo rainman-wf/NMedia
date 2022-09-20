@@ -17,22 +17,21 @@ import com.bumptech.glide.Glide
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.github.dhaval2404.imagepicker.constant.ImageProvider
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.constants.AuthFragmentArgsConstants
 import ru.netology.nmedia.common.utils.hideKeyboard
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.databinding.FragmentAuthBinding
-import ru.netology.nmedia.di.AppContainerHolder
 import ru.netology.nmedia.presentation.viewmodels.AuthViewModel
 
+@AndroidEntryPoint
 class AuthFragment : Fragment(R.layout.fragment_auth) {
 
     private val args: AuthFragmentArgs by navArgs()
     private val reason by lazy { args.reason }
 
-    val authViewModel: AuthViewModel by viewModels(::requireParentFragment) {
-        (requireActivity() as AppContainerHolder).appContainer.authViewModelFactory
-    }
+    val authViewModel: AuthViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -7,18 +7,15 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
-import androidx.navigation.ui.setupWithNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
-import ru.netology.nmedia.di.AppContainer
-import ru.netology.nmedia.application.App
 import ru.netology.nmedia.databinding.ActivityMainBinding
-import ru.netology.nmedia.di.AppContainerHolder
 
-class MainActivity : AppCompatActivity(), AppContainerHolder {
+@AndroidEntryPoint
+class MainActivity : AppCompatActivity() {
 
-    override val appContainer: AppContainer by lazy { createContainer() }
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,8 +23,6 @@ class MainActivity : AppCompatActivity(), AppContainerHolder {
 
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        createContainer()
 
         val navHost = supportFragmentManager.findFragmentById(R.id.rootNavController) as NavHostFragment
         navController = navHost.navController
@@ -40,10 +35,6 @@ class MainActivity : AppCompatActivity(), AppContainerHolder {
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
-    }
-
-    private fun createContainer(): AppContainer {
-        return (application as App).appContainer
     }
 
     private fun checkGoogleApiAvailability() {

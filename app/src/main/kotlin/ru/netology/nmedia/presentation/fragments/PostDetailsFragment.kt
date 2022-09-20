@@ -7,19 +7,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentPostDetailsBinding
-import ru.netology.nmedia.di.AppContainerHolder
 import ru.netology.nmedia.domain.models.PostModel
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostViewHolder
 import ru.netology.nmedia.presentation.viewmodels.DetailsViewModel
 
+@AndroidEntryPoint
 class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
 
-    private val viewModel: DetailsViewModel by viewModels(::requireParentFragment) {
-        (requireActivity() as AppContainerHolder).appContainer.detailsViewModelFactory
-    }
+    private val viewModel: DetailsViewModel by viewModels()
 
     private val args by navArgs<PostDetailsFragmentArgs>()
     private val postModeKey by lazy { args.postId }

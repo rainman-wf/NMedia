@@ -17,22 +17,20 @@ import com.bumptech.glide.Glide
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.github.dhaval2404.imagepicker.constant.ImageProvider
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.common.utils.notifyEmptyMessage
-import ru.netology.nmedia.di.AppContainerHolder
 import ru.netology.nmedia.presentation.viewmodels.NewPostViewModel
 
+@AndroidEntryPoint
 class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
-    private val viewModel: NewPostViewModel by viewModels(::requireParentFragment) {
-        (requireActivity() as AppContainerHolder).appContainer.newPostViewModelFactory
-    }
+    private val viewModel: NewPostViewModel by viewModels()
 
     private val args: NewPostFragmentArgs by navArgs()
     private val postId by lazy { args.postId }
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

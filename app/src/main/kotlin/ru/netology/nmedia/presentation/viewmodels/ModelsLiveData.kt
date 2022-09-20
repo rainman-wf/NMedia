@@ -10,8 +10,13 @@ import ru.netology.nmedia.domain.models.FeedModel
 import ru.netology.nmedia.domain.models.FeedModelState
 import ru.netology.nmedia.domain.models.PhotoModel
 import ru.netology.nmedia.domain.usecase.GetAllUseCase
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ModelsLiveData(getAllUseCase: GetAllUseCase) {
+@Singleton
+class ModelsLiveData @Inject constructor(
+    getAllUseCase: GetAllUseCase
+) {
 
     val data: MutableLiveData<FeedModel> = getAllUseCase() as MutableLiveData<FeedModel>
     val state = MutableLiveData(FeedModelState())

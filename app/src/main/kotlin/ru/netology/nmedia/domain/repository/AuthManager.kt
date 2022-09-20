@@ -2,7 +2,7 @@ package ru.netology.nmedia.domain.repository
 
 import ru.netology.nmedia.domain.models.UploadMediaDto
 
-interface AuthService {
+interface AuthManager {
 
     suspend fun login(login: String, password: String)
 
@@ -19,6 +19,8 @@ interface AuthService {
         avatar: UploadMediaDto
     )
 
+    fun getId() : Long
     fun logOut()
+    fun sendPushToken(token: String? = null)
 
 }

@@ -17,22 +17,20 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.constants.AuthFragmentArgsConstants
 import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostAdapter
-import ru.netology.nmedia.di.AppContainerHolder
 import ru.netology.nmedia.presentation.viewmodels.PostListViewModel
 import ru.netology.nmedia.databinding.FragmentPostsListBinding
 import ru.netology.nmedia.domain.models.PostModel
 
+@AndroidEntryPoint
 class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
-    private val viewModel: PostListViewModel by viewModels(::requireParentFragment) {
-        (requireActivity() as AppContainerHolder).appContainer.postListViewModelFactory
-    }
-
+    private val viewModel: PostListViewModel by viewModels()
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

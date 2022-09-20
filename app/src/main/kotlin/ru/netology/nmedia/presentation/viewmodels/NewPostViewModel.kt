@@ -3,21 +3,23 @@ package ru.netology.nmedia.presentation.viewmodels
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.domain.models.Attachment
 import ru.netology.nmedia.domain.models.PhotoModel
-import ru.netology.nmedia.domain.usecase.container.NewPostUseCaseContainer
-import java.io.File
+import ru.netology.nmedia.domain.usecase.SavePostUseCase
+import javax.inject.Inject
 
-class NewPostViewModel(
-    private val newPostUseCaseContainer: NewPostUseCaseContainer,
+@HiltViewModel
+class NewPostViewModel @Inject constructor(
+    val savePostUseCase: SavePostUseCase,
     val liveData: ModelsLiveData
 ) : ViewModel() {
 
     fun onSaveClicked(key: Long, content: String) {
         viewModelScope.launch {
             try {
-                newPostUseCaseContainer.savePostUseCase(
+                savePostUseCase(
                     key,
                     content,
                     liveData.photo.value?.let { Attachment(it.uri, Attachment.Type.IMAGE) }

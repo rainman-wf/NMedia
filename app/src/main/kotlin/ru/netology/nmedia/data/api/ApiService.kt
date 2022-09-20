@@ -8,7 +8,7 @@ import ru.netology.nmedia.data.api.dto.LoginResponse
 import ru.netology.nmedia.data.api.dto.PostRequestBody
 import ru.netology.nmedia.data.api.dto.PostResponseBody
 import ru.netology.nmedia.domain.models.Media
-import ru.netology.nmedia.domain.models.Post
+import ru.netology.nmedia.data.api.dto.PushToken
 
 interface ApiService {
 
@@ -27,18 +27,12 @@ interface ApiService {
     @DELETE("posts/{id}")
     suspend fun remove(@Path("id") id: Long): Response<Unit>
 
-    @GET("posts/{id}")
-    suspend fun getById(@Path("id") id: Long): Response<PostResponseBody>
-
     @GET("posts/{id}/newer")
     suspend fun getNewer(@Path("id") id: Long): Response<List<PostResponseBody>>
 
     @Multipart
     @POST("media")
     suspend fun uploadMedia(@Part media: MultipartBody.Part): Response<Media>
-
-    @POST("media")
-    suspend fun save(@Body post: PostRequestBody): Response<PostResponseBody>
 
     @FormUrlEncoded
     @POST("users/authentication")
@@ -60,6 +54,9 @@ interface ApiService {
         @Part("name") name: RequestBody,
         @Part media: MultipartBody.Part,
     ): Response<LoginResponse>
+
+    @POST("users/push-tokens")
+    suspend fun saveToken(@Body pushToken: PushToken) : Response<Unit>
 }
 
 

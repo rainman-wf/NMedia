@@ -3,26 +3,20 @@ package ru.netology.nmedia.presentation.viewmodels
 import android.net.Uri
 import androidx.core.net.toFile
 import androidx.core.net.toUri
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.common.exceptions.ApiError
-import ru.netology.nmedia.common.exceptions.AppError
-import ru.netology.nmedia.common.utils.log
-import ru.netology.nmedia.data.api.dto.Password
-import ru.netology.nmedia.data.api.dto.Username
-import ru.netology.nmedia.data.auth.AppAuth
-import ru.netology.nmedia.data.auth.AuthState
 import ru.netology.nmedia.domain.models.PhotoModel
 import ru.netology.nmedia.domain.models.UploadMediaDto
-import ru.netology.nmedia.domain.repository.AuthService
+import ru.netology.nmedia.domain.repository.AuthManager
+import javax.inject.Inject
 
-class AuthViewModel(
+@HiltViewModel
+class AuthViewModel @Inject constructor(
     val liveData: ModelsLiveData,
-    private val authService: AuthService,
+    private val authManager: AuthManager,
 ) : ViewModel() {
 
     val errorEvent = SingleLiveEvent<String>()
@@ -40,8 +34,8 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
                 liveData.photo.value?.uri?.toUri()?.toFile()?.let {
-                    authService.register(login, password, username, UploadMediaDto(it))
-                } ?: authService.simpleRegister(login, password, username)
+                    authManager.register(login, password, username, UploadMediaDto(it))
+                } ?: authManager.simpleRegister(login, password, username)
                 okEvent.postValue(Unit)
                 clearPhoto()
             } catch (e: ApiError) {
@@ -56,7 +50,7 @@ class AuthViewModel(
     fun signIn(login: String, password: String) {
         viewModelScope.launch {
             try {
-                authService.login(login, password)
+                authManager.login(login, password)
                 okEvent.postValue(Unit)
             } catch (e: ApiError) {
                 when(e.status)  {

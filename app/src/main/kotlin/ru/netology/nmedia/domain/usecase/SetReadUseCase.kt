@@ -1,8 +1,13 @@
 package ru.netology.nmedia.domain.usecase
 
 import ru.netology.nmedia.domain.repository.PostRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SetReadUseCase(private val repository: PostRepository) {
+@Singleton
+class SetReadUseCase @Inject constructor(
+    private val repository: PostRepository
+) {
     suspend operator fun invoke(key: Long) {
         repository.setRead(key)
     }

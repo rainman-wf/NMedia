@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import ru.netology.nmedia.common.constants.AUTHOR
 import ru.netology.nmedia.common.exceptions.ApiError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
@@ -20,8 +19,11 @@ import ru.netology.nmedia.data.mapper.toPost
 import ru.netology.nmedia.data.mapper.toRequestBody
 import ru.netology.nmedia.domain.models.*
 import ru.netology.nmedia.domain.repository.PostRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PostsRepositoryImpl(
+@Singleton
+class PostRepositoryImpl @Inject constructor(
     private val api: ApiService,
     private val postDao: PostDao
 ) : PostRepository {
