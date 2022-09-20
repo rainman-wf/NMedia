@@ -11,10 +11,8 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.components.SingletonComponent
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.utils.log
-import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.domain.repository.AuthManager
 import ru.netology.nmedia.presentation.activities.MainActivity
 import ru.netology.nmedia.services.dto.Notify
@@ -37,10 +35,20 @@ class FCMService : FirebaseMessagingService() {
 
         val notify: Notify = gson.fromJson(message.data[content], Notify::class.java)
 
-        when(notify.id) {
-            authManager.getId() -> if (notify.id != 0L) handleNotify(notify.content)
-            null -> handleNotify(notify.content)
-            else -> authManager.sendPushToken()
+        log(notify)
+
+        val myId = authManager.getId()
+        val recipientId = notify.recipientId
+
+        log("my ID = $myId")
+        log("recipient ID = $recipientId")
+        log(recipientId == null)
+
+        when {
+            recipientId != 0L && recipientId == myId -> handleNotify(notify.content)
+            recipientId == 0L && recipientId != myId -> authManager.sendPushToken()
+            recipientId != 0L && recipientId != myId -> authManager.sendPushToken()
+            recipientId == null -> handleNotify(notify.content)
         }
     }
 
