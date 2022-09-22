@@ -31,11 +31,7 @@ class FCMService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
 
-        log(message.data)
-
         val notify: Notify = gson.fromJson(message.data[content], Notify::class.java)
-
-        log(notify)
 
         val myId = authManager.getId()
         val recipientId = notify.recipientId
