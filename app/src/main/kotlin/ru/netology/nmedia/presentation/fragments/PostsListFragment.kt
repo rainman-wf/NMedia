@@ -27,7 +27,6 @@ import ru.netology.nmedia.presentation.adapter.PostAdapter
 import ru.netology.nmedia.presentation.viewmodels.PostListViewModel
 import ru.netology.nmedia.databinding.FragmentPostsListBinding
 import ru.netology.nmedia.domain.models.PostModel
-import ru.netology.nmedia.presentation.viewmodels.NewPostViewModel
 
 @AndroidEntryPoint
 class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
