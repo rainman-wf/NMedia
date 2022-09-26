@@ -8,12 +8,11 @@ import ru.netology.nmedia.domain.repository.PostRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
 class SavePostUseCase @Inject constructor(
     private val postRepository: PostRepository
 ) {
-    suspend operator fun invoke(key: Long, content: String, attachment: Attachment?) {
-        if (key == 0L) postRepository.save(NewPostDto(Author(1,"name"), content, attachment))
+    suspend operator fun invoke(key: Long, content: String, attachment: Attachment?) : Long {
+        return if (key == 0L) postRepository.save(NewPostDto(Author(1,"name"), content, attachment))
         else postRepository.update(UpdatePostDto(key, content))
     }
 }

@@ -4,7 +4,6 @@ import ru.netology.nmedia.domain.repository.PostRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
 class TrySendPostUseCase @Inject constructor(
     private val postRepository: PostRepository
 ) {

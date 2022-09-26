@@ -28,4 +28,5 @@ class ModelsLiveData @Inject constructor(
     val authenticated: Boolean
         get() = AppAuth.getInstance().authStateFlow.value.id != 0L
 
+    val postCreated = SingleLiveEvent<Long>()
 }

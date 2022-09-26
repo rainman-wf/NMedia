@@ -20,17 +20,20 @@ import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.constants.AuthFragmentArgsConstants
+import ru.netology.nmedia.common.exceptions.DbError
 import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostAdapter
 import ru.netology.nmedia.presentation.viewmodels.PostListViewModel
 import ru.netology.nmedia.databinding.FragmentPostsListBinding
 import ru.netology.nmedia.domain.models.PostModel
+import ru.netology.nmedia.presentation.viewmodels.NewPostViewModel
 
 @AndroidEntryPoint
 class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
     private val viewModel: PostListViewModel by viewModels()
+
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -173,6 +176,14 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                 }
             }
         })
+
+        viewModel.modelsLiveData.postCreated.observe(viewLifecycleOwner) {
+            try {
+                viewModel.onTryClicked(it!!)
+            } catch (e: Exception) {
+                throw DbError
+            }
+        }
 
         viewModel.modelsLiveData.state.observe(viewLifecycleOwner) {
             binding.postList.isVisible = !it.loading

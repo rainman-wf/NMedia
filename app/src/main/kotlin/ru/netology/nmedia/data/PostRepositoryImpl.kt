@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.common.exceptions.ApiError
+import ru.netology.nmedia.common.exceptions.DbError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
 import ru.netology.nmedia.data.local.dao.PostDao
@@ -33,20 +34,34 @@ class PostRepositoryImpl @Inject constructor(
 
     override suspend fun getByKey(key: Long) = postDao.getByKey(key).toModel()
 
-    override suspend fun save(newPostDto: NewPostDto) {
-        val key = postDao.insert(newPostDto.toEntity())
-        sendPost(key)
+    override suspend fun save(newPostDto: NewPostDto) : Long {
+        return postDao.insert(newPostDto.toEntity())
     }
 
-    override suspend fun update(updatePostDto: UpdatePostDto) {
-        postDao.updateContentByKey(updatePostDto.key, updatePostDto.content)
-        sendPost(updatePostDto.key)
+    override suspend fun update(updatePostDto: UpdatePostDto) : Long {
+        return try {
+            postDao.updateContentByKey(updatePostDto.key, updatePostDto.content)
+            updatePostDto.key
+        } catch (e: Exception) {
+            throw DbError
+        }
     }
 
     override suspend fun sendPost(key: Long) {
 
+        log(key)
+
         val entity = postDao.getByKey(key)
-        if (entity.id == 0L) postDao.setState(key, PostModel.State.LOADING)
+
+        log (entity)
+
+        if (entity.id == 0L) try {
+            postDao.setState(key, PostModel.State.LOADING)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        log(entity.id)
 
         val mediaId = if (entity.attachment != null && !entity.attachment.url.contains("http"))
             upload(UploadMediaDto(entity.attachment.url.toUri().toFile()))?.id else null
@@ -55,6 +70,7 @@ class PostRepositoryImpl @Inject constructor(
             val post = api.send(entity.toRequestBody().copy(
                 attachment = mediaId?.let { Attachment(url = it, Attachment.Type.IMAGE) }
             )).body()!!
+            log (post)
             postDao.setAvatar(key, post.authorAvatar)
             postDao.setAuthorName(key, post.author)
             postDao.setServerId(key, post.id)
@@ -62,6 +78,7 @@ class PostRepositoryImpl @Inject constructor(
             if (entity.id == 0L) postDao.setServerDateTime(key, post.published)
             postDao.setState(key, PostModel.State.OK)
         } catch (e: Exception) {
+            e.printStackTrace()
             postDao.setState(key, PostModel.State.ERROR)
         }
     }

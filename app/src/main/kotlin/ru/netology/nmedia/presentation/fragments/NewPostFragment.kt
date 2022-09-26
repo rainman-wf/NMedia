@@ -49,7 +49,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                         ).show()
                     }
                     Activity.RESULT_OK -> {
-                        it.data?.data?.let { uri ->  viewModel.changePhoto(uri) }
+                        it.data?.data?.let { uri -> viewModel.changePhoto(uri) }
                     }
                 }
             }
@@ -77,7 +77,6 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         }
 
         viewModel.liveData.photo.observe(viewLifecycleOwner) { photoModel ->
-            log(photoModel == null)
             photoModel?.uri?.let {
                 binding.clearAttachment.isVisible = true
                 binding.attachmentImagePreview.isVisible = true
@@ -104,7 +103,6 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                     return when (menuItem.itemId) {
                         R.id.register -> {
                             if (binding.msgInputText.text.isEmpty()) {
-                                log(binding.msgInputText.text.toString())
                                 notifyEmptyMessage(binding.root)
                             } else {
                                 viewModel.onSaveClicked(
@@ -112,8 +110,8 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                                     binding.msgInputText.text.toString()
                                 )
                                 viewModel.clearAttachment()
-                                findNavController().popBackStack()
                                 binding.msgInputText.text.clear()
+                                findNavController().popBackStack()
                             }
                             true
                         }
