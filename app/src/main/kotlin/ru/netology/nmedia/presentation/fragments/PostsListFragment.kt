@@ -15,6 +15,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -195,8 +196,17 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
             binding.updateList.isRefreshing = it.refreshing
         }
 
+        lifecycleScope.launchWhenCreated {
+            postAdapter.loadStateFlow.collectLatest {
+                binding.updateList.isRefreshing =
+                    it.refresh is LoadState.Loading ||
+                            it.append is LoadState.Loading ||
+                            it.prepend is LoadState.Loading
+            }
+        }
+
         binding.updateList.setOnRefreshListener {
-            viewModel.onRefreshSwiped()
+            postAdapter.refresh()
         }
     }
 

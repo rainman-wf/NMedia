@@ -10,11 +10,12 @@
         android:id="@+id/newerCount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:text="@string/new_posts"
+        android:visibility="gone"
         app:backgroundTint="@color/teal_700"
         app:icon="@drawable/ic_baseline_arrow_upward_24"
-        app:iconGravity="start"
-        android:text="@string/new_posts"
-        android:layout_gravity="top|center_horizontal" />
+        app:iconGravity="start" />
 
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
