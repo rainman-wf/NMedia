@@ -8,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.data.auth.AuthState
-import ru.netology.nmedia.domain.models.FeedModel
 import ru.netology.nmedia.domain.models.FeedModelState
 import ru.netology.nmedia.domain.models.PhotoModel
 import ru.netology.nmedia.domain.models.PostModel
