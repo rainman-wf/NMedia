@@ -5,9 +5,13 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.paging.map
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentPostDetailsBinding
 import ru.netology.nmedia.domain.models.PostModel
@@ -67,16 +71,6 @@ class PostDetailsFragment : Fragment(R.layout.fragment_post_details) {
 
             }
         )
-
-        viewModel.modelsLiveData.data
-            .observe(viewLifecycleOwner) { posts ->
-                val postModel = posts.posts[postModeKey] ?: run {
-                    findNavController().navigateUp()
-                    return@observe
-                }
-
-                postViewHolder.bind(postModel)
-            }
     }
 }
 

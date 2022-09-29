@@ -18,6 +18,9 @@ interface ApiService {
     @GET("posts")
     suspend fun getAll(): Response<List<PostResponseBody>>
 
+    @GET("posts/latest")
+    suspend fun getLatest(@Query("count") count: Int): Response<List<PostResponseBody>>
+
     @POST("posts/{id}/likes")
     suspend fun like(@Path("id") id: Long): Response<PostResponseBody>
 
@@ -29,6 +32,12 @@ interface ApiService {
 
     @GET("posts/{id}/newer")
     suspend fun getNewer(@Path("id") id: Long): Response<List<PostResponseBody>>
+
+    @GET("posts/{id}/before")
+    suspend fun getBefore(@Path("id") id: Long, @Query("count") count: Int): Response<List<PostResponseBody>>
+
+    @GET("posts/{id}/after")
+    suspend fun getAfter(@Path("id") id: Long, @Query("count") count: Int): Response<List<PostResponseBody>>
 
     @Multipart
     @POST("media")

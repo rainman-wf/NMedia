@@ -29,8 +29,6 @@ class AuthManagerImpl @Inject constructor(
 
     private val appAuth = AppAuth.getInstance()
 
-
-
     init {
         val id = prefs.getLong(appAuth.idKey, 0L)
         val token = prefs.getString(appAuth.tokenKey, null)

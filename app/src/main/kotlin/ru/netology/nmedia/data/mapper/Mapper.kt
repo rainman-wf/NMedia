@@ -67,6 +67,13 @@ fun Post.toModel(key: Long) = PostModel(
     post = this
 )
 
+fun PostResponseBody.toModel() =
+    PostModel(
+        key = id,
+        state = PostModel.State.OK,
+        post = toPost()
+    )
+
 
 fun PostEntity.toRequestBody() = PostRequestBody(
     id = id,

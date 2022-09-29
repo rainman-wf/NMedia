@@ -20,11 +20,11 @@ class PostListViewModel @Inject constructor(
     val setReadUseCase: SetReadUseCase
 ) : ViewModel() {
 
-    init {
-        modelsLiveData.state.postValue(FeedModelState(loading = true))
-        getNewerUseCase.invoke()
-        syncData()
-    }
+//    init {
+//        modelsLiveData.state.postValue(FeedModelState(loading = true))
+//        getNewerUseCase()
+//        syncData()
+//    }
 
     fun setRead(key: Long) {
         viewModelScope.launch {

@@ -1,11 +1,12 @@
 package ru.netology.nmedia.domain.repository
 
+import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.domain.models.*
 
 interface PostRepository {
 
-    val posts: Flow<List<PostModel>>
+    val posts: Flow<PagingData<PostModel>>
 
     suspend fun getByKey(key: Long): PostModel
     suspend fun save(newPostDto: NewPostDto) : Long

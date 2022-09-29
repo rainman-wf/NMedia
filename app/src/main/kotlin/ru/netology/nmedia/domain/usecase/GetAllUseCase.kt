@@ -1,23 +1,17 @@
 package ru.netology.nmedia.domain.usecase
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
+import androidx.paging.PagingData
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.map
-import ru.netology.nmedia.domain.models.FeedModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import ru.netology.nmedia.domain.models.PostModel
 import ru.netology.nmedia.domain.repository.PostRepository
 import javax.inject.Inject
-import javax.inject.Singleton
 
 class GetAllUseCase @Inject constructor(
     private val repository: PostRepository
 ) {
-    operator fun invoke(): LiveData<FeedModel> {
-        return repository.posts
-            .map { list ->
-                FeedModel(list.associateBy { it.key }
-                    .toMutableMap())
-            }
-            .asLiveData(Dispatchers.Default)
+    operator fun invoke(): Flow<PagingData<PostModel>> {
+        return repository.posts.flowOn(Dispatchers.Default)
     }
 }

@@ -12,12 +12,14 @@ import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.constants.AuthFragmentArgsConstants
 import ru.netology.nmedia.common.exceptions.DbError
@@ -40,51 +42,6 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         val binding = FragmentPostsListBinding.bind(view)
         val navController = findNavController()
-
-        viewModel.modelsLiveData.authData.observe(viewLifecycleOwner) {
-            requireActivity().addMenuProvider(object : MenuProvider {
-                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                    menu.clear()
-                    menuInflater.inflate(R.menu.manu_main, menu)
-                    menu.let {
-                        it.setGroupVisible(
-                            R.id.unauthenticated,
-                            !viewModel.modelsLiveData.authenticated
-                        )
-                        it.setGroupVisible(
-                            R.id.authenticated,
-                            viewModel.modelsLiveData.authenticated
-                        )
-                    }
-                }
-
-                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                    return when (menuItem.itemId) {
-                        R.id.signIn -> {
-                            navController.navigate(
-                                PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment(
-                                    AuthFragmentArgsConstants.SIGN_IN.name
-                                )
-                            )
-                            true
-                        }
-                        R.id.signOut -> {
-                            AppAuth.getInstance().removeAuth()
-                            true
-                        }
-                        R.id.signUp -> {
-                            navController.navigate(
-                                PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment(
-                                    AuthFragmentArgsConstants.SIGN_UP.name
-                                )
-                            )
-                            true
-                        }
-                        else -> false
-                    }
-                }
-            }, viewLifecycleOwner)
-        }
 
         val postAdapter = PostAdapter(
             object : OnPostClickListener {
@@ -132,6 +89,54 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
             }
         )
 
+        viewModel.modelsLiveData.authData.observe(viewLifecycleOwner) {
+
+            postAdapter.refresh()
+
+            requireActivity().addMenuProvider(object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menu.clear()
+                    menuInflater.inflate(R.menu.manu_main, menu)
+                    menu.let {
+                        it.setGroupVisible(
+                            R.id.unauthenticated,
+                            !viewModel.modelsLiveData.authenticated
+                        )
+                        it.setGroupVisible(
+                            R.id.authenticated,
+                            viewModel.modelsLiveData.authenticated
+                        )
+                    }
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    return when (menuItem.itemId) {
+                        R.id.signIn -> {
+                            navController.navigate(
+                                PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment(
+                                    AuthFragmentArgsConstants.SIGN_IN.name
+                                )
+                            )
+                            true
+                        }
+                        R.id.signOut -> {
+                            AppAuth.getInstance().removeAuth()
+                            true
+                        }
+                        R.id.signUp -> {
+                            navController.navigate(
+                                PostsListFragmentDirections.actionPostsListFragmentToSignUpFragment(
+                                    AuthFragmentArgsConstants.SIGN_UP.name
+                                )
+                            )
+                            true
+                        }
+                        else -> false
+                    }
+                }
+            }, viewLifecycleOwner)
+        }
+
         binding.postList.apply {
             adapter = postAdapter
             val animator = itemAnimator
@@ -148,11 +153,10 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
             else showAuthAlert(navController)
         }
 
-        viewModel.modelsLiveData.data.observe(viewLifecycleOwner) { feedModel ->
-            val unread = feedModel.posts.values.filterNot { it.read }
-            binding.newerCount.text = "${getText(R.string.new_posts)} ${unread.size}"
-            binding.newerCount.isVisible = unread.isNotEmpty()
-            postAdapter.submitList(feedModel.posts.values.sortedBy { it.post.published }.reversed())
+        lifecycleScope.launchWhenCreated {
+            viewModel.modelsLiveData.data.collectLatest {
+                postAdapter.submitData(it)
+            }
         }
 
         binding.newerCount.setOnClickListener {
