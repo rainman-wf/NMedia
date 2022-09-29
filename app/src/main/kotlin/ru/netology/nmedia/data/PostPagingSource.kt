@@ -2,27 +2,28 @@ package ru.netology.nmedia.data
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import ru.netology.nmedia.common.exceptions.NetworkError
 import ru.netology.nmedia.data.api.ApiService
-import ru.netology.nmedia.data.api.dto.PostResponseBody
+import ru.netology.nmedia.data.local.dao.PostDao
+import ru.netology.nmedia.data.local.entity.PostEntity
 import java.io.IOException
 import javax.inject.Inject
 
 class PostPagingSource @Inject constructor(
-    private val apiService: ApiService
-) : PagingSource<Long, PostResponseBody>() {
+    private val apiService: ApiService,
+    private val postDao: PostDao
+) : PagingSource<Long, PostEntity>() {
 
-    override fun getRefreshKey(state: PagingState<Long, PostResponseBody>): Long? = null
+    override fun getRefreshKey(state: PagingState<Long, PostEntity>): Long? = null
 
-    override suspend fun load(params: LoadParams<Long>): LoadResult<Long, PostResponseBody> {
+    override suspend fun load(params: LoadParams<Long>): LoadResult<Long, PostEntity> {
         try {
             val result = when (params) {
                 is LoadParams.Refresh -> {
-                    apiService.getLatest(params.loadSize)
+                    postDao.getLatest(params.loadSize)
                 }
                 is LoadParams.Append -> {
-                    apiService.getBefore(
-                        id = params.key,
+                    postDao.getBefore(
+                        key = params.key,
                         count = params.loadSize
                     )
                 }
@@ -32,13 +33,11 @@ class PostPagingSource @Inject constructor(
                     prevKey = params.key
                 )
             }
-            if (!result.isSuccessful) throw NetworkError
 
-            val data = result.body().orEmpty()
             return LoadResult.Page(
-                data = data,
+                data = result,
                 prevKey = params.key,
-                nextKey = data.lastOrNull()?.id
+                nextKey = result.lastOrNull()?.id
             )
         } catch (e: IOException) {
             return LoadResult.Error(e)

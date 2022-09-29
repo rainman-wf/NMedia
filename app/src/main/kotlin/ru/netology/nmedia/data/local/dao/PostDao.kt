@@ -25,6 +25,12 @@ interface PostDao {
     @Query("SELECT id FROM posts WHERE removed = 1")
     suspend fun getAllRemovedIds() : List<Long>
 
+    @Query("SELECT * FROM posts LIMIT :count OFFSET :key")
+    suspend fun getBefore(key: Long, count: Int) : List<PostEntity>
+
+    @Query("SELECT * FROM posts LIMIT :count")
+    suspend fun getLatest(count: Int) : List<PostEntity>
+
     // get by key
 
     @Query("SELECT * FROM posts WHERE `key` = :key")

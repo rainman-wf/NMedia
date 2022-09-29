@@ -37,8 +37,8 @@ class PostRepositoryImpl @Inject constructor(
     override val posts: Flow<PagingData<PostModel>> =
         Pager(
             config = PagingConfig(pageSize = 10, enablePlaceholders = false),
-            pagingSourceFactory = { PostPagingSource(api) }
-        ).flow.map { it.map (PostResponseBody::toModel) }
+            pagingSourceFactory = { PostPagingSource(api, postDao) }
+        ).flow.map { it.map (PostEntity::toModel) }
 
     override suspend fun getByKey(key: Long) = postDao.getByKey(key).toModel()
 
