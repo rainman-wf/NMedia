@@ -11,5 +11,6 @@ data class PostResponseBody(
     val id: Long,
     val likedByMe: Boolean,
     val likes: Int,
-    val published: Long
+    val published: Long,
+    val ownedByMe: Boolean
 )

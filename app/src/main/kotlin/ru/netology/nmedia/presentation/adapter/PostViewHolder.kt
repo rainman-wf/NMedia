@@ -25,7 +25,7 @@ class PostViewHolder(
         binding.apply {
             author.text = post.author.name
             content.text = post.content
-            published.text = formatDate(post.published)
+            published.text = post.published.toString()
             likeCount.text = post.likes.asUnit()
             sharesCount.text = post.shares.asUnit()
             viewsCount.text = post.views.asUnit()
@@ -40,7 +40,7 @@ class PostViewHolder(
             sendingBar.isVisible =
                 postModel.state == PostModel.State.LOADING || postModel.state == PostModel.State.ERROR
 
-            menu.isVisible = post.author.id == AppAuth.getInstance().authStateFlow.value.id
+            menu.isVisible = post.ownedByMe
 
             post.attachment?.let {
                 log("attachment not null")

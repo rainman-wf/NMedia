@@ -2,13 +2,10 @@ package ru.netology.nmedia.data
 
 import androidx.core.net.toFile
 import androidx.core.net.toUri
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
+import androidx.paging.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -16,8 +13,9 @@ import ru.netology.nmedia.common.exceptions.ApiError
 import ru.netology.nmedia.common.exceptions.DbError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
-import ru.netology.nmedia.data.api.dto.PostResponseBody
+import ru.netology.nmedia.data.local.AppDb
 import ru.netology.nmedia.data.local.dao.PostDao
+import ru.netology.nmedia.data.local.dao.PostRemoteKeyDao
 import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.data.mapper.toEntity
 import ru.netology.nmedia.data.mapper.toModel
@@ -31,14 +29,23 @@ import javax.inject.Singleton
 @Singleton
 class PostRepositoryImpl @Inject constructor(
     private val api: ApiService,
-    private val postDao: PostDao
+    private val postDao: PostDao,
+    private val postRemoteKeyDao: PostRemoteKeyDao,
+    private val appDb: AppDb
 ) : PostRepository {
 
+    @OptIn(ExperimentalPagingApi::class)
     override val posts: Flow<PagingData<PostModel>> =
         Pager(
-            config = PagingConfig(pageSize = 10, enablePlaceholders = false),
-            pagingSourceFactory = { PostPagingSource(api) }
-        ).flow.map { it.map (PostResponseBody::toModel) }
+            config = PagingConfig(pageSize = 10),
+            pagingSourceFactory = { postDao.getPagingSource() },
+            remoteMediator = PostRemoteMediator(
+                apiService = api,
+                postDao = postDao,
+                postRemoteKeyDao = postRemoteKeyDao,
+                appDb = appDb
+            )
+        ).flow.map { it.map (PostEntity::toModel) }
 
     override suspend fun getByKey(key: Long) = postDao.getByKey(key).toModel()
 

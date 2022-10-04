@@ -1,5 +1,6 @@
 package ru.netology.nmedia.data.local.dao
 
+import androidx.paging.PagingSource
 import androidx.room.*
 import androidx.room.OnConflictStrategy.IGNORE
 import androidx.room.OnConflictStrategy.REPLACE
@@ -16,6 +17,9 @@ interface PostDao {
     @Query("SELECT * FROM posts WHERE removed = 0")
     fun getAll(): Flow<List<PostEntity>>
 
+    @Query("SELECT * FROM posts WHERE removed = 0")
+    fun getPagingSource(): PagingSource<Int, PostEntity>
+
     @Query("SELECT * FROM posts where id = 0")
     suspend fun getAllUnsent() : List<PostEntity>
 
@@ -24,6 +28,12 @@ interface PostDao {
 
     @Query("SELECT id FROM posts WHERE removed = 1")
     suspend fun getAllRemovedIds() : List<Long>
+
+    @Query("SELECT * FROM posts LIMIT :count OFFSET :key")
+    suspend fun getBefore(key: Long, count: Int) : List<PostEntity>
+
+    @Query("SELECT * FROM posts LIMIT :count")
+    suspend fun getLatest(count: Int) : List<PostEntity>
 
     // get by key
 
@@ -137,5 +147,7 @@ interface PostDao {
     @Query("DELETE FROM posts WHERE id = :id")
     suspend fun removeById(id: Long): Int
 
+    @Query("DELETE FROM posts")
+    suspend fun clear()
 
 }
