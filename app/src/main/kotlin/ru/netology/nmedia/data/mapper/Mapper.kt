@@ -17,7 +17,8 @@ fun PostEntity.toPost() = Post(
     likes = likes,
     shares = shares,
     views = views,
-    attachment = attachment?.toModel()
+    attachment = attachment?.toModel(),
+    ownedByMe = ownedByMe
 )
 
 fun PostEntity.toModel() = PostModel(
@@ -43,7 +44,8 @@ fun PostResponseBody.toEntity(key: Long, synced: Boolean, state: PostModel.State
         attachment = attachment?.toEntity(),
         state = state,
         read = read,
-        synced = synced
+        synced = synced,
+        ownedByMe = ownedByMe
     )
 
 fun PostResponseBody.toPost() =
@@ -58,7 +60,8 @@ fun PostResponseBody.toPost() =
         published = published,
         likedByMe = likedByMe,
         likes = likes,
-        attachment = attachment
+        attachment = attachment,
+        ownedByMe = ownedByMe
     )
 
 
@@ -88,7 +91,8 @@ fun NewPostDto.toEntity() = PostEntity(
     published = Date().time / 1000,
     synced = false,
     state = PostModel.State.LOADING,
-    attachment = attachment?.toEntity()
+    attachment = attachment?.toEntity(),
+    ownedByMe = true
 )
 
 fun Author.toEntity() = AuthorEntity(

@@ -6,6 +6,8 @@ import androidx.lifecycle.asLiveData
 import androidx.paging.PagingData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.data.auth.AuthState
 import ru.netology.nmedia.domain.models.FeedModelState
@@ -21,6 +23,7 @@ class ModelsLiveData @Inject constructor(
 ) {
 
     val data: Flow<PagingData<PostModel>> = getAllUseCase()
+
     val state = MutableLiveData(FeedModelState())
     val photo = MutableLiveData<PhotoModel>(null)
 
