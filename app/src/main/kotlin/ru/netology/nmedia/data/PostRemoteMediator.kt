@@ -3,6 +3,7 @@ package ru.netology.nmedia.data
 import androidx.paging.*
 import androidx.room.withTransaction
 import ru.netology.nmedia.common.exceptions.ApiError
+import ru.netology.nmedia.common.exceptions.AppError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
 import ru.netology.nmedia.data.local.AppDb
@@ -11,7 +12,8 @@ import ru.netology.nmedia.data.local.dao.PostRemoteKeyDao
 import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.data.local.entity.PostRemoteKeyEntity
 import ru.netology.nmedia.data.mapper.toEntity
-import ru.netology.nmedia.domain.models.PostModel
+import java.io.IOException
+import java.lang.NullPointerException
 import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
@@ -40,14 +42,10 @@ class PostRemoteMediator @Inject constructor(
                 }
             }
 
-            if (!response.isSuccessful) {
-                throw ApiError(response.code(), response.message())
-            }
+            if (!response.isSuccessful) throw ApiError(response.code(), response.message())
 
-            val body = response.body() ?: throw ApiError(
-                response.code(),
-                response.message()
-            )
+            val body = response.body() ?: throw NullPointerException("body is null")
+
 
             appDb.withTransaction {
 
@@ -89,10 +87,11 @@ class PostRemoteMediator @Inject constructor(
                     }
                 }
 
-                postDao.insert(body.map { it.toEntity(0, true, PostModel.State.OK, true) })
+                postDao.insert(body.map { it.toEntity() })
             }
 
             return MediatorResult.Success(body.isEmpty())
+
         } catch (e: Exception) {
             return MediatorResult.Error(e)
         }

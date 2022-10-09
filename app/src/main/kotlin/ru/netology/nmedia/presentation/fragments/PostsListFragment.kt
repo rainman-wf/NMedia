@@ -9,7 +9,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.core.view.MenuProvider
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -17,27 +16,26 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.DefaultItemAnimator
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.constants.AuthFragmentArgsConstants
-import ru.netology.nmedia.common.exceptions.DbError
+import ru.netology.nmedia.common.exceptions.ApiError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostAdapter
 import ru.netology.nmedia.presentation.viewmodels.PostListViewModel
 import ru.netology.nmedia.databinding.FragmentPostsListBinding
-import ru.netology.nmedia.domain.models.PostModel
+import ru.netology.nmedia.domain.models.Post
+import ru.netology.nmedia.presentation.adapter.PostLoadingStateAdapter
 
 @AndroidEntryPoint
 class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
     private val viewModel: PostListViewModel by viewModels()
-
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -48,12 +46,12 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         val postAdapter = PostAdapter(
             object : OnPostClickListener {
-                override fun onLike(postModel: PostModel) {
-                    if (viewModel.modelsLiveData.authenticated) viewModel.onLikeClicked(postModel.key)
+                override fun onLike(post: Post) {
+                    if (viewModel.modelsLiveData.authenticated) viewModel.onLikeClicked(post.id)
                     else showAuthAlert(navController)
                 }
 
-                override fun onShare(postModel: PostModel) {
+                override fun onShare(post: Post) {
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.unsupported),
@@ -61,34 +59,27 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
                     ).show()
                 }
 
-                override fun onEdit(postModel: PostModel) {
+                override fun onEdit(post: Post) {
                     navController.navigate(
                         PostsListFragmentDirections.actionPostsListFragmentToNewPostFragment(
-                            postId = postModel.key,
-                            postContent = postModel.post.content
+                            postId = post.id,
+                            postContent = post.content
                         )
                     )
                 }
 
-                override fun onRemove(postModel: PostModel) {
-                    viewModel.onRemoveClicked(postModel.key)
+                override fun onRemove(post: Post) {
+                    viewModel.onRemoveClicked(post.id)
                 }
 
-                override fun onDetails(postModel: PostModel) {
+                override fun onDetails(post: Post) {
                     navController.navigate(
                         PostsListFragmentDirections.actionPostsListFragmentToPostDetailsFragment(
-                            postId = postModel.key
+                            postId = post.id
                         )
                     )
                 }
 
-                override fun onTryClicked(postModel: PostModel) {
-                    viewModel.onTryClicked(postModel.key)
-                }
-
-                override fun onCancelClicked(postModel: PostModel) {
-                    viewModel.onRemoveClicked(postModel.key)
-                }
             }
         )
 
@@ -141,7 +132,10 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
         }
 
         binding.postList.apply {
-            adapter = postAdapter
+            adapter = postAdapter.withLoadStateHeaderAndFooter(
+                header = PostLoadingStateAdapter { postAdapter.retry() },
+                footer = PostLoadingStateAdapter { postAdapter.retry() },
+            )
             val animator = itemAnimator
             if (animator is DefaultItemAnimator) animator.supportsChangeAnimations = false
             postAdapter.stateRestorationPolicy =
@@ -158,45 +152,23 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         lifecycleScope.launchWhenCreated {
             viewModel.modelsLiveData.data
-                .collectLatest {
-                postAdapter.submitData(it)
-            }
-        }
-
-        binding.newerCount.setOnClickListener {
-            binding.postList.layoutManager?.scrollToPosition(0)
-        }
-
-        binding.postList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                val layoutManager: LinearLayoutManager =
-                    recyclerView.layoutManager as LinearLayoutManager
-                val currentPosition = layoutManager.findFirstCompletelyVisibleItemPosition()
-                val lastPosition = layoutManager.itemCount - 1
-                for (position in currentPosition..lastPosition) {
-                    try {
-                        val post = postAdapter.getPost(position)
-                        if (!post.read) viewModel.setRead(post.key)
-                    } catch (_: Exception) {
+                .catch { e ->
+                    log(e.message)
+                    when (e) {
+                        is ApiError -> {
+                            when (e.status) {
+                                403 -> {
+                                    log(e.status)
+                                    AppAuth.getInstance().removeAuth()
+                                    showAuthAlert(navController)
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        })
-
-        viewModel.modelsLiveData.postCreated.observe(viewLifecycleOwner) {
-            try {
-                viewModel.onTryClicked(it!!)
-            } catch (e: Exception) {
-                throw DbError
-            }
-        }
-
-        viewModel.modelsLiveData.state.observe(viewLifecycleOwner) {
-            binding.postList.isVisible = !it.loading
-            binding.loadingText.isVisible = it.loading
-            binding.loadingProgress.isVisible = it.loading
-            binding.updateList.isRefreshing = it.refreshing
+                .collectLatest {
+                    postAdapter.submitData(it)
+                }
         }
 
         lifecycleScope.launchWhenCreated {
@@ -210,6 +182,15 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         binding.updateList.setOnRefreshListener {
             postAdapter.refresh()
+        }
+
+        viewModel.modelsLiveData.postCreated.observe(viewLifecycleOwner) {
+            it?.let { viewModel.sendPost(it.id, it.content) }
+        }
+
+        viewModel.modelsLiveData.postSent.observe(viewLifecycleOwner) {
+            postAdapter.refresh()
+            binding.postList.layoutManager?.scrollToPosition(0)
         }
     }
 

@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/itemConteiner"
+    android:id="@+id/itemContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="@dimen/common_spacing"
@@ -114,8 +114,7 @@
         android:layout_height="wrap_content"
         app:constraint_referenced_ids="likeCount,sharesCount,viewsCount"
         tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="16dp"
-        tools:visibility="visible" />
+        tools:layout_editor_absoluteY="16dp" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/bottomBarBarrier"
@@ -126,56 +125,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/attachmentImage" />
-
-    <androidx.constraintlayout.widget.Group
-        android:id="@+id/sendingBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:constraint_referenced_ids="trySending,sending,cancel"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="16dp"
-        tools:visibility="gone" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/trySending"
-        style="@style/Widget.AppTheme.IconButton"
-        android:layout_marginEnd="16dp"
-        android:text="@string/try_again"
-        app:icon="@drawable/ic_baseline_refresh_24"
-        app:layout_constraintEnd_toStartOf="@+id/cancel"
-        app:layout_constraintTop_toBottomOf="@id/bottomBarBarrier" />
-
-    <ProgressBar
-        android:id="@+id/sending"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/trySending"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/trySending" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/cancel"
-        style="@style/Widget.AppTheme.IconButton"
-        android:text="@string/cancel"
-        app:icon="@drawable/ic_baseline_cancel_24"
-        app:layout_constraintBottom_toBottomOf="@+id/trySending"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/trySending" />
-
-    <ImageView
-        android:id="@+id/error"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="16dp"
-        android:contentDescription="@string/error"
-        app:layout_constraintBottom_toBottomOf="@+id/trySending"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/trySending"
-        app:srcCompat="@drawable/ic_baseline_cancel_24"
-        app:tint="@color/design_default_color_error"
-        tools:visibility="gone" />
 
     <ImageView
         android:id="@+id/attachmentImage"
@@ -188,11 +137,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/content"
         tools:srcCompat="@sample/attachment" />
-
-    <com.google.android.material.divider.MaterialDivider
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

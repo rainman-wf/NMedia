@@ -1,13 +1,11 @@
 package ru.netology.nmedia.presentation.adapter
 
-import ru.netology.nmedia.domain.models.PostModel
+import ru.netology.nmedia.domain.models.Post
 
 interface OnPostClickListener {
-    fun onLike(postModel: PostModel)
-    fun onShare(postModel: PostModel)
-    fun onEdit(postModel: PostModel)
-    fun onRemove(postModel: PostModel)
-    fun onDetails(postModel: PostModel)
-    fun onTryClicked(postModel: PostModel)
-    fun onCancelClicked(postModel: PostModel)
+    fun onLike(post: Post)
+    fun onShare(post: Post)
+    fun onEdit(post: Post)
+    fun onRemove(post: Post)
+    fun onDetails(post: Post)
 }

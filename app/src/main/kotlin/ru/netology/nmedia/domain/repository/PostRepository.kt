@@ -6,16 +6,11 @@ import ru.netology.nmedia.domain.models.*
 
 interface PostRepository {
 
-    val posts: Flow<PagingData<PostModel>>
+    val posts: Flow<PagingData<FeedItem>>
 
-    suspend fun getByKey(key: Long): PostModel
-    suspend fun save(newPostDto: NewPostDto) : Long
-    suspend fun sendPost(key: Long)
-    suspend fun like(key: Long)
-    suspend fun remove(key: Long)
-    suspend fun update(updatePostDto: UpdatePostDto) : Long
-    suspend fun syncData()
-    suspend fun setRead(key: Long)
-    fun getNewerCount()
+    suspend fun sendPost(newPostDto: NewPostDto)
+    suspend fun update(updatePostDto: UpdatePostDto)
+    suspend fun like(id: Long)
+    suspend fun remove(id: Long)
 
 }

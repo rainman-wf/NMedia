@@ -26,7 +26,7 @@ class AuthViewModel @Inject constructor(
         liveData.photo.value = PhotoModel(uri.toString())
     }
 
-    fun clearPhoto() {
+    private fun clearPhoto() {
         liveData.photo.value = null
     }
 

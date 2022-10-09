@@ -44,31 +44,4 @@
         app:srcCompat="@drawable/ic_add_48"
         app:tint="@color/white" />
 
-    <ProgressBar
-        android:id="@+id/loadingProgress"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="229dp"
-        android:layout_height="213dp"
-        android:layout_gravity="center" />
-
-    <TextView
-        android:id="@+id/loadingText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:fontFamily="sans-serif-black"
-        android:text="@string/loading"
-        android:textSize="20sp" />
-
-    <TextView
-        android:id="@+id/emptyWall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-black"
-        android:text="@string/posts_is_empty"
-        android:textSize="20sp"
-        android:visibility="gone"
-        android:layout_gravity="center"
-        tools:visibility="visible" />
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
