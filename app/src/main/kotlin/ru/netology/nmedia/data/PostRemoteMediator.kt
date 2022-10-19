@@ -3,7 +3,6 @@ package ru.netology.nmedia.data
 import androidx.paging.*
 import androidx.room.withTransaction
 import ru.netology.nmedia.common.exceptions.ApiError
-import ru.netology.nmedia.common.exceptions.AppError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
 import ru.netology.nmedia.data.local.AppDb
@@ -12,7 +11,6 @@ import ru.netology.nmedia.data.local.dao.PostRemoteKeyDao
 import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.data.local.entity.PostRemoteKeyEntity
 import ru.netology.nmedia.data.mapper.toEntity
-import java.io.IOException
 import java.lang.NullPointerException
 import javax.inject.Inject
 
@@ -46,12 +44,12 @@ class PostRemoteMediator @Inject constructor(
 
             val body = response.body() ?: throw NullPointerException("body is null")
 
+            if (body.isEmpty()) return MediatorResult.Success(true)
 
             appDb.withTransaction {
 
                 when (loadType) {
                     LoadType.REFRESH -> {
-                        postDao.clear()
                         postRemoteKeyDao.insert(
                             listOf(
                                 PostRemoteKeyEntity(
