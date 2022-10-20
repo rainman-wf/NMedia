@@ -4,12 +4,10 @@ import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.paging.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.common.exceptions.ApiError
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
 import ru.netology.nmedia.data.api.dto.PostRequestBody
 import ru.netology.nmedia.data.local.AppDb
@@ -34,7 +32,7 @@ class PostRepositoryImpl @Inject constructor(
     @OptIn(ExperimentalPagingApi::class)
     override val posts: Flow<PagingData<FeedItem>> =
         Pager(
-            config = PagingConfig(pageSize = 10),
+            config = PagingConfig(pageSize = 10, prefetchDistance = 10, enablePlaceholders = false),
             pagingSourceFactory = { postDao.getPagingSource() },
             remoteMediator = PostRemoteMediator(
                 apiService = api,

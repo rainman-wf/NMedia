@@ -30,4 +30,4 @@ fun notifyEmptyMessage(view: View) {
     Toast.makeText(view.context, "Content can't be empty", Toast.LENGTH_SHORT).show()
 }
 
-fun Any.log(msg: Any?) = Timber.d(this.javaClass.simpleName + " " + msg.toString())
+fun Any.log(msg: Any?) = Timber.d("CODE34" + this.javaClass.simpleName + " " + msg.toString())

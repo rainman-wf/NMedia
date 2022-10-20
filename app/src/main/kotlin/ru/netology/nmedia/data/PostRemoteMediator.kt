@@ -26,8 +26,8 @@ class PostRemoteMediator @Inject constructor(
         loadType: LoadType,
         state: PagingState<Int, PostEntity>
     ): MediatorResult {
+        log(loadType)
         try {
-            log(loadType)
             val response = when (loadType) {
                 LoadType.REFRESH -> apiService.getLatest(state.config.initialLoadSize)
                 LoadType.PREPEND -> {
@@ -43,8 +43,6 @@ class PostRemoteMediator @Inject constructor(
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
 
             val body = response.body() ?: throw NullPointerException("body is null")
-
-            if (body.isEmpty()) return MediatorResult.Success(true)
 
             appDb.withTransaction {
 
@@ -88,9 +86,10 @@ class PostRemoteMediator @Inject constructor(
                 postDao.insert(body.map { it.toEntity() })
             }
 
-            return MediatorResult.Success(body.isEmpty())
+            return MediatorResult.Success(false)
 
         } catch (e: Exception) {
+            log("ERROR : ${e::class.simpleName} : ${e.message}")
             return MediatorResult.Error(e)
         }
     }

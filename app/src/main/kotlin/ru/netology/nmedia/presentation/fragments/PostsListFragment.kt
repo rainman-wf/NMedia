@@ -18,12 +18,9 @@ import androidx.paging.LoadState
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
 import ru.netology.nmedia.common.constants.AuthFragmentArgsConstants
-import ru.netology.nmedia.common.exceptions.ApiError
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.auth.AppAuth
 import ru.netology.nmedia.presentation.adapter.OnPostClickListener
 import ru.netology.nmedia.presentation.adapter.PostAdapter
@@ -152,20 +149,6 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         lifecycleScope.launchWhenCreated {
             viewModel.modelsLiveData.data
-                .catch { e ->
-                    log(e.message)
-                    when (e) {
-                        is ApiError -> {
-                            when (e.status) {
-                                403 -> {
-                                    log(e.status)
-                                    AppAuth.getInstance().removeAuth()
-                                    showAuthAlert(navController)
-                                }
-                            }
-                        }
-                    }
-                }
                 .collectLatest {
                     postAdapter.submitData(it)
                 }
