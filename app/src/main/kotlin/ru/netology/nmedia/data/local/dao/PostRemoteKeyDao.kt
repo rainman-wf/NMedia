@@ -9,6 +9,9 @@ import ru.netology.nmedia.data.local.entity.PostRemoteKeyEntity
 @Dao
 interface PostRemoteKeyDao {
 
+    @Query("SELECT COUNT(*) == 0 FROM PostRemoteKeyEntity")
+    suspend fun isEmpty() : Boolean
+
     @Query("SELECT max(`key`) FROM PostRemoteKeyEntity")
     suspend fun max() : Long?
 
