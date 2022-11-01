@@ -17,7 +17,8 @@
         app:layout_constraintStart_toStartOf="@+id/loginField"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
-        tools:srcCompat="@tools:sample/avatars" />
+        tools:srcCompat="@tools:sample/avatars"
+        android:contentDescription="@string/avatar_img" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/firstNameField"
@@ -34,7 +35,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/firstNameInputText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:inputType="text"/>
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -53,7 +55,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/loginInputText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:inputType="text"/>
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -67,12 +70,14 @@
         android:hint="@string/password"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/loginField"
-        tools:layout_editor_absoluteX="48dp">
+        tools:layout_editor_absoluteX="48dp"
+        app:endIconMode="password_toggle">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/passwordInputText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:inputType="textPassword" />
 
     </com.google.android.material.textfield.TextInputLayout>
 

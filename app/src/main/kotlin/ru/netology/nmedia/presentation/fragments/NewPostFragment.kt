@@ -19,7 +19,6 @@ import com.github.dhaval2404.imagepicker.constant.ImageProvider
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
-import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.common.utils.notifyEmptyMessage
 import ru.netology.nmedia.presentation.viewmodels.NewPostViewModel
@@ -109,7 +108,6 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                                     postId,
                                     binding.msgInputText.text.toString()
                                 )
-                                viewModel.clearAttachment()
                                 binding.msgInputText.text.clear()
                                 findNavController().popBackStack()
                             }

@@ -1,6 +1,6 @@
 package ru.netology.nmedia.domain.models
 
 data class UpdatePostDto(
-    val key: Long,
+    val id: Long,
     val content: String
 )

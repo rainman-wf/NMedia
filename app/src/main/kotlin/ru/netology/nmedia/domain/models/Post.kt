@@ -1,7 +1,7 @@
 package ru.netology.nmedia.domain.models
 
 data class Post(
-    val id: Long,
+    override val id: Long,
     val author: Author,
     val content: String,
     val published: Long,
@@ -9,7 +9,8 @@ data class Post(
     val likes: Int = 0,
     val shares: Int = 0,
     val views: Int = 0,
-    val attachment: Attachment? = null
-)
+    val attachment: Attachment? = null,
+    val ownedByMe: Boolean
+) : FeedItem
 
 

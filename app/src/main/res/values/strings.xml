@@ -20,7 +20,7 @@
     <string name="loading">LOADING</string>
     <string name="posts_is_empty">"There are no posts on this wall.\nAdd your new post right now."</string>
     <string name="error" translatable="false">error</string>
-    <string name="try_again">Try again</string>
+    <string name="try_again">Retry</string>
     <string name="unsupported">Unsupported function</string>
     <string name="attachment" translatable="false">attachment</string>
     <string name="new_posts">New posts</string>
@@ -32,7 +32,7 @@
     <string name="password">Password</string>
     <string name="sign_in">Sign in</string>
     <string name="sign_up">Sign up</string>
-    <string name="signout">SignOut</string>
+    <string name="sign_out">SignOut</string>
     <string name="name">Name</string>
     <string name="login">Login</string>
 </resources>
