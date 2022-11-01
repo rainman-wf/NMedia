@@ -19,7 +19,7 @@ class PostLoadingViewHolder(
 
         itemLoadingBinding.apply {
             progress.isVisible = loadState is LoadState.Loading
-            retryButton.isVisible = loadState is LoadState.Error && loadState.error !is NoSuchElementException
+            retryButton.isVisible = loadState is LoadState.Error
             retryButton.setOnClickListener {
                 retryListener()
             }

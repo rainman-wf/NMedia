@@ -2,7 +2,6 @@ package ru.netology.nmedia.presentation.adapter
 
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardAdBinding
 import ru.netology.nmedia.domain.models.Ad
 
@@ -18,3 +17,4 @@ class AdViewHolder(
             .into(binding.adImage)
     }
 }
+

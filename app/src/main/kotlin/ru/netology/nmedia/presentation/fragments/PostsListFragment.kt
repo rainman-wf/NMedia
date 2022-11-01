@@ -156,10 +156,10 @@ class PostsListFragment : Fragment(R.layout.fragment_posts_list) {
 
         lifecycleScope.launchWhenCreated {
             postAdapter.loadStateFlow.collectLatest {
-                binding.updateList.isRefreshing =
-                    it.refresh is LoadState.Loading ||
-                            it.append is LoadState.Loading ||
-                            it.prepend is LoadState.Loading
+                binding.updateList.isEnabled =
+                    it.append !is LoadState.Loading || it.prepend !is LoadState.Loading
+
+                binding.updateList.isRefreshing = it.refresh is LoadState.Loading
             }
         }
 

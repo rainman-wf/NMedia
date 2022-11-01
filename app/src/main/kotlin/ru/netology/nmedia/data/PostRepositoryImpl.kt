@@ -17,6 +17,7 @@ import ru.netology.nmedia.data.local.entity.PostEntity
 import ru.netology.nmedia.data.mapper.toPost
 import ru.netology.nmedia.domain.models.*
 import ru.netology.nmedia.domain.repository.PostRepository
+import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
@@ -32,7 +33,7 @@ class PostRepositoryImpl @Inject constructor(
     @OptIn(ExperimentalPagingApi::class)
     override val posts: Flow<PagingData<FeedItem>> =
         Pager(
-            config = PagingConfig(pageSize = 10, prefetchDistance = 10, enablePlaceholders = false),
+            config = PagingConfig(pageSize = 10, prefetchDistance = 10, enablePlaceholders = true, maxSize = 30),
             pagingSourceFactory = { postDao.getPagingSource() },
             remoteMediator = PostRemoteMediator(
                 apiService = api,
@@ -42,6 +43,28 @@ class PostRepositoryImpl @Inject constructor(
             )
         ).flow.map {
             it.map(PostEntity::toPost)
+                .insertSeparators { previous, next ->
+
+                    val currentTimeValue = Date().time / 1000
+                    val prevPublishedTime = previous?.published
+                    val nextPublishedTime = next?.published
+
+                    val range = if (prevPublishedTime != null && nextPublishedTime != null)
+                        nextPublishedTime .. prevPublishedTime
+                    else return@insertSeparators null
+
+                    val oldnessValue = when {
+                        currentTimeValue - 60 in range -> "Только что"
+                        currentTimeValue - 120 in range -> "Минуту назад"
+                        currentTimeValue - 300 in range -> "5 минут назад"
+                        currentTimeValue - 3600 in range -> "Час назад"
+                        currentTimeValue - 7200 in range -> "2 часа назад"
+                        else -> return@insertSeparators null
+                    }
+
+                    TimeSeparator(Random.nextLong(), oldnessValue)
+
+                }
                 .insertSeparators { previous, _ ->
                     if (previous?.id?.rem(5) == 0L) {
                         Ad(Random.nextLong(), "figma.jpg")
@@ -49,6 +72,7 @@ class PostRepositoryImpl @Inject constructor(
                         null
                     }
                 }
+
         }
 
     override suspend fun sendPost(newPostDto: NewPostDto) {

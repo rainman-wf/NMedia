@@ -5,6 +5,7 @@ import androidx.room.withTransaction
 import ru.netology.nmedia.common.exceptions.ApiError
 import ru.netology.nmedia.common.utils.log
 import ru.netology.nmedia.data.api.ApiService
+import ru.netology.nmedia.data.api.dto.PostResponseBody
 import ru.netology.nmedia.data.local.AppDb
 import ru.netology.nmedia.data.local.dao.PostDao
 import ru.netology.nmedia.data.local.dao.PostRemoteKeyDao
@@ -18,7 +19,7 @@ class PostRemoteMediator @Inject constructor(
     private val apiService: ApiService,
     private val postDao: PostDao,
     private val postRemoteKeyDao: PostRemoteKeyDao,
-    private val appDb: AppDb
+    private val appDb: AppDb,
 ) : RemoteMediator<Int, PostEntity>() {
 
     override suspend fun load(
@@ -33,31 +34,37 @@ class PostRemoteMediator @Inject constructor(
                         apiService.getAfter(it, state.config.pageSize)
                     } ?: apiService.getLatest(state.config.initialLoadSize)
                 }
-                LoadType.PREPEND -> return MediatorResult.Success(true)
                 LoadType.APPEND -> {
-                    val id = postRemoteKeyDao.min() ?: return MediatorResult.Success(false)
+                    val id = postRemoteKeyDao.min() ?: return MediatorResult.Success(
+                        endOfPaginationReached = false
+                    )
                     apiService.getBefore(id, state.config.pageSize)
+                }
+                LoadType.PREPEND -> {
+                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(
+                        endOfPaginationReached = false
+                    )
+                    apiService.getAfter(id, state.config.pageSize)
                 }
             }
 
             if (!response.isSuccessful) return MediatorResult.Error(
                 ApiError(
                     response.code(),
-                    response.message()
+                    response.message(),
                 )
             )
 
             val body = response.body() ?: return MediatorResult.Error(
                 ApiError(
                     response.code(),
-                    response.message()
+                    response.message(),
                 )
             )
 
-            if (body.isEmpty()) return MediatorResult.Error(NoSuchElementException())
+            if (body.isEmpty()) return MediatorResult.Success(true)
 
             appDb.withTransaction {
-
                 when (loadType) {
                     LoadType.REFRESH -> {
                         if (postRemoteKeyDao.isEmpty())
@@ -81,20 +88,24 @@ class PostRemoteMediator @Inject constructor(
                                 )
                             )
                     }
-                    LoadType.APPEND -> {
+                    LoadType.PREPEND -> {
                         postRemoteKeyDao.insert(
-                            listOf(
-                                PostRemoteKeyEntity(
-                                    PostRemoteKeyEntity.KeyType.BEFORE,
-                                    body.last().id
-                                )
+                            PostRemoteKeyEntity(
+                                type = PostRemoteKeyEntity.KeyType.AFTER,
+                                key = body.first().id,
                             )
                         )
                     }
-                    else -> {}
+                    LoadType.APPEND -> {
+                        postRemoteKeyDao.insert(
+                            PostRemoteKeyEntity(
+                                type = PostRemoteKeyEntity.KeyType.BEFORE,
+                                key = body.last().id,
+                            )
+                        )
+                    }
                 }
-
-                postDao.insert(body.map { it.toEntity() })
+                postDao.insert(body.map(PostResponseBody::toEntity))
             }
 
             return MediatorResult.Success(body.isEmpty())

@@ -6,7 +6,6 @@ import androidx.paging.LoadState
 import androidx.paging.LoadStateAdapter
 import ru.netology.nmedia.databinding.ItemLoadingBinding
 
-
 class PostLoadingStateAdapter(
     private val retryListener: () -> Unit
 ) : LoadStateAdapter<PostLoadingViewHolder>() {
